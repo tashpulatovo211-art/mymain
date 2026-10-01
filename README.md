@@ -1,8 +1,17 @@
 # multibot
 
-A private Telegram bot that runs on your own computer and lets you talk to Claude, GPT and Gemini through the subscriptions you already pay for, plus Grok through an xAI API key. You can switch models mid-conversation and the context carries over, ask all of them the same question at once, and turn on an agent mode where the model makes files and the bot sends them to you.
+Talk to Claude, GPT and Gemini through the subscriptions you already pay for, plus Grok through an xAI API key, all in one place. You can switch models mid-conversation and the context carries over, ask all of them the same question at once, and turn on an agent mode where the model makes files for you.
+
+It comes in two forms that share the same engine:
+
+- **Plushie Chat**, a web page where each model is a plushie on a shelf. Run `python web.py` and it opens in your browser.
+- **A private Telegram bot**, for when you're away from the computer. Run `python bot.py`.
 
 It's an alternative to xAI's Grok Bot, which is a closed product: there's no way to plug your Claude, ChatGPT or Google subscriptions into it.
+
+## Plushie Chat on claude.ai: no setup, Claude only
+
+[Plushie Chat](https://claude.ai/artifact/PRzoADmUhpW6USkxz9h2ZQ) is also published on claude.ai. There, the Claude bunny answers using your own Claude account. The first message asks you to allow it, and its usage counts toward your Claude plan. GPT, Gemini and Grok sleep on the shelf. A page on claude.ai can't reach OpenAI, Google or xAI, and those plans only work through the apps on your computer. To wake them up, set up the home app below and open Plushie Chat with `python web.py`.
 
 ## How it uses your subscriptions
 
@@ -15,13 +24,13 @@ This matters because the rules are strict:
 - **OpenAI** lets you sign in to Codex with ChatGPT Plus/Pro, and its Codex usage counts against your plan.
 - **Grok** has no subscription route. SuperGrok doesn't include API access, so Grok needs a pay-per-use key from [console.x.ai](https://console.x.ai).
 
-Don't share the bot with anyone. It runs on your accounts, and letting other people use it would break these rules. The bot ignores everyone whose Telegram ID isn't in `ALLOWED_USER_IDS`.
+Don't share the bot or the web page with anyone. They run on your accounts, and letting other people use them would break these rules. The bot ignores everyone whose Telegram ID isn't in `ALLOWED_USER_IDS`, and the web page only answers on your computer unless you set a passcode.
 
 Every message counts against your plan's usage limits, the same as using the apps directly. The bot re-sends recent conversation with each message (up to `MAX_HISTORY_CHARS`), so long chats cost more. `/new` starts fresh.
 
 ## Setup
 
-You need Python 3.10 or newer, and the computer has to stay on while you use the bot.
+You need Python 3.10 or newer, and the computer has to stay on while you use it. Steps 2, 4 and 5 are only for the Telegram bot; for Plushie Chat alone, do steps 1 and 3 (and put `XAI_API_KEY` in `.env` if you want Grok), then run `python web.py`.
 
 **1. Install the apps you have plans for, and sign in to each once.**
 
@@ -70,6 +79,23 @@ Message your bot. It replies with your Telegram user ID. Put that number in `ALL
 
 To try the models without Telegram, run `python console.py`. It has the same commands, in the terminal.
 
+## Plushie Chat on your computer
+
+```
+python web.py
+```
+
+This opens http://localhost:8765 in your browser. Every plushie you set up in step 1 is awake: tap one to talk to it, or tap Everyone to ask them all at once. The Make files switch turns on agent mode, and each file the plushie makes shows up under its answer so you can download it. Ctrl+C stops it.
+
+To open it on your phone over the same Wi-Fi, add a passcode and let other devices in:
+
+```
+WEB_HOST=0.0.0.0
+WEB_PASSCODE=pick-something-long
+```
+
+Restart `python web.py`; it prints the address to open on your phone. The page asks for the passcode once. Without `WEB_PASSCODE` the app refuses to listen beyond your own computer, because anyone on the Wi-Fi could otherwise use your plans.
+
 ## Commands
 
 | Command | What it does |
@@ -101,6 +127,7 @@ Everything is in `.env`; see `.env.example` for the full list. The ones you're m
 - `CLAUDE_MODEL`, `CODEX_MODEL`, `GEMINI_MODEL`: pick a model inside each app, for example `CLAUDE_MODEL=opus`. Empty means the app's default.
 - `CLAUDE_SOURCE`, `GPT_SOURCE`, `GEMINI_SOURCE`: `auto` uses the app if it's installed and an API key otherwise; `cli` or `api` forces one.
 - `REPLY_TIMEOUT`: seconds before a slow answer is stopped (default 300).
+- `WEB_PORT`, `WEB_HOST`, `WEB_PASSCODE`: where Plushie Chat listens (default port 8765, this computer only) and the passcode other devices need.
 
 API keys in `.env` are never passed to the apps. Otherwise Claude Code, for one, would bill the key instead of your plan.
 
@@ -118,6 +145,6 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-The tests start fake `claude`, `codex` and `gemini` programs to check exactly what the bot runs, and feed messages through the real Telegram library against a fake Telegram server.
+The tests start fake `claude`, `codex` and `gemini` programs to check exactly what the bot runs, feed messages through the real Telegram library against a fake Telegram server, and check the web server's locks (token, host check, passcode, file paths). `tests/test_page.py` also drives Plushie Chat in Chromium; it runs when Playwright is installed (`pip install playwright && playwright install chromium`) and is skipped otherwise.
 
 What was tested beyond that: the Claude Code path ran for real (chat, memory across a model switch, and agent mode writing a file). Codex and Gemini CLI were checked against their current versions (0.159.3 and 0.62.0) up to the sign-in step; they couldn't be signed in on the test machine. Everything ran on Linux; Windows and macOS weren't tested.

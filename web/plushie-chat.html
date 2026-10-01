@@ -1,0 +1,964 @@
+<title>Plushie Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Mochiy+Pop+One&display=swap">
+<style>
+/* Layout: one soft column. A felt shelf of plushies on top, a stitched chat thread, a round button composer. */
+:root {
+  --bg: #f7f0f3;
+  --surface: #ffffff;
+  --surface-2: #fbf4f7;
+  --ink: #3a2c35;
+  --muted: #86717d;
+  --line: #ecdbe3;
+  --thread: #c2416b;
+  --thread-ink: #ffffff;
+  --me: #fbe2ea;
+  --shelf: #efdfe7;
+  --eye: #2e2229;
+  --blush: #f59ab0;
+  --ear-in: #f7bccb;
+  --beak: #f1bd69;
+  --danger: #c0392f;
+  --claude: #f2a07a; --claude-hi: #fcd6c1; --claude-lo: #db7f58;
+  --gpt: #80caae; --gpt-hi: #cdeee2; --gpt-lo: #5aae8f;
+  --gemini: #b09be2; --gemini-hi: #e1d7f7; --gemini-lo: #8f79cc;
+  --grok: #86a5d6; --grok-hi: #d3e0f3; --grok-lo: #6585bd;
+  --display: "Mochiy Pop One", "M PLUS Rounded 1c", ui-rounded, system-ui, sans-serif;
+  --body: "M PLUS Rounded 1c", ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --plush: clamp(52px, 15vw, 74px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1720; --surface: #272030; --surface-2: #2f2739; --ink: #f6ecf2; --muted: #b7a5b1;
+    --line: #3d3348; --thread: #f27fa4; --thread-ink: #2a1520; --me: #3c2636; --shelf: #2d2537;
+    --eye: #241a21; --blush: #ea86a0; --ear-in: #e9a3b7; --beak: #e5ad57; --danger: #f2837b;
+    --claude: #ea976f; --claude-hi: #f6c6ad; --claude-lo: #c97650;
+    --gpt: #70c0a3; --gpt-hi: #b3e5d2; --gpt-lo: #4f9f82;
+    --gemini: #a38dda; --gemini-hi: #d0c4f2; --gemini-lo: #8169c4;
+    --grok: #7a99cd; --grok-hi: #bccdee; --grok-lo: #5a79b1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1720; --surface: #272030; --surface-2: #2f2739; --ink: #f6ecf2; --muted: #b7a5b1;
+  --line: #3d3348; --thread: #f27fa4; --thread-ink: #2a1520; --me: #3c2636; --shelf: #2d2537;
+  --eye: #241a21; --blush: #ea86a0; --ear-in: #e9a3b7; --beak: #e5ad57; --danger: #f2837b;
+  --claude: #ea976f; --claude-hi: #f6c6ad; --claude-lo: #c97650;
+  --gpt: #70c0a3; --gpt-hi: #b3e5d2; --gpt-lo: #4f9f82;
+  --gemini: #a38dda; --gemini-hi: #d0c4f2; --gemini-lo: #8169c4;
+  --grok: #7a99cd; --grok-hi: #bccdee; --grok-lo: #5a79b1;
+  color-scheme: dark;
+}
+
+html { box-sizing: border-box; height: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: var(--thread); text-underline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.app { height: 100%; max-width: 760px; margin-inline: auto; padding-inline: 16px; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+
+/* Top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding-block: 14px 4px; }
+.brand { margin: 0; font: 400 1.3rem/1.2 var(--display); letter-spacing: .01em; display: flex; align-items: center; gap: .45em; white-space: nowrap; }
+.brand svg { width: 1.15em; height: 1.15em; flex: none; }
+.actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.pill:hover { border-color: var(--thread); }
+.pill:disabled { opacity: .5; cursor: default; border-color: var(--line); }
+.pill:focus-visible, .pal:focus-visible, .chip:focus-visible, .send:focus-visible, .file:focus-visible, .retry:focus-visible { outline: 2px dashed var(--thread); outline-offset: 3px; }
+.switch input { appearance: none; width: 28px; height: 16px; margin: 0; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background .2s; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); transition: transform .2s; }
+.switch input:checked { background: var(--thread); }
+.switch input:checked::after { transform: translateX(12px); }
+
+/* The shelf */
+.shelf { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 14px 4px 0; }
+.shelf::before { content: ""; position: absolute; inset-inline: 0; top: calc(14px + var(--plush) - 7px); height: 15px; border-radius: 10px; background: var(--shelf); }
+.shelf::after { content: ""; position: absolute; inset-inline: 10px; top: calc(14px + var(--plush) - 2px); border-top: 1.5px dashed color-mix(in srgb, var(--thread) 40%, transparent); }
+.pal { position: relative; z-index: 1; display: grid; justify-items: center; gap: 15px; padding: 0 0 6px; border: 0; background: none; cursor: pointer; border-radius: 14px; min-width: 0; }
+.pal .lift { display: block; width: var(--plush); height: var(--plush); transition: transform .3s cubic-bezier(.3, 1.7, .5, 1); }
+.pal:hover .lift { transform: translateY(-3px); }
+.pal[aria-pressed="true"] .lift { transform: translateY(-7px) scale(1.06); }
+.pal-name { font: 400 clamp(.62rem, 2.9vw, .74rem)/1.2 var(--display); color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-bottom: 3px; border-bottom: 1.5px dashed transparent; }
+.pal[aria-pressed="true"] .pal-name { color: var(--ink); border-bottom-color: var(--thread); }
+.pal.thinking .plush { animation: hop .8s ease-in-out infinite; }
+
+/* The care tag under the shelf */
+.tag { justify-self: center; position: relative; margin-top: 10px; max-width: min(100%, 52ch); padding: 11px 16px 9px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 4px 4px 14px 14px; font-size: .8rem; line-height: 1.5; color: var(--muted); text-align: center; text-wrap: balance; }
+.tag::before { content: ""; position: absolute; inset-inline: 8px; top: 4px; border-top: 1.5px dashed color-mix(in srgb, var(--tag-color, var(--thread)) 70%, transparent); }
+.tag b { color: var(--ink); font-weight: 800; }
+
+/* Thread */
+.thread { overflow-y: auto; min-height: 0; padding-block: 18px 12px; display: flex; flex-direction: column; gap: 16px; overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px); mask-image: linear-gradient(to bottom, transparent 0, #000 16px); }
+.msg { display: flex; align-items: flex-end; gap: 10px; }
+.msg.me { justify-content: flex-end; }
+.msg .avatar { flex: none; width: 38px; }
+.msg .body { min-width: 0; max-width: min(580px, 84%); display: grid; gap: 4px; }
+.who { font: 400 .7rem/1 var(--display); color: var(--muted); padding-left: 8px; }
+.bubble { min-width: 0; padding: 12px 16px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 20px 20px 20px 7px; outline: 1.5px dashed color-mix(in srgb, var(--pal, var(--thread)) 60%, transparent); outline-offset: -6px; overflow-wrap: anywhere; }
+.me .bubble { background: var(--me); border-color: transparent; border-radius: 20px 20px 7px 20px; outline-color: color-mix(in srgb, var(--thread) 40%, transparent); }
+.bubble > :first-child { margin-top: 0; }
+.bubble > :last-child { margin-bottom: 0; }
+.bubble p, .bubble ul, .bubble ol, .bubble pre { margin: 0 0 .7em; }
+.bubble ul, .bubble ol { padding-left: 1.3em; }
+.bubble li + li { margin-top: .2em; }
+.bubble .h { font-weight: 800; }
+.bubble code { font: .88em var(--mono); background: var(--surface-2); padding: .1em .35em; border-radius: 6px; }
+.bubble pre { overflow-x: auto; background: var(--surface-2); border-radius: 12px; padding: 10px 12px; }
+.bubble pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.5; }
+.bubble hr { border: 0; border-top: 1.5px dashed var(--line); margin: .8em 0; }
+.bubble .err { color: var(--danger); font-weight: 500; }
+.bubble.error { outline-color: color-mix(in srgb, var(--danger) 55%, transparent); }
+.note { font-size: .75rem; color: var(--muted); padding-left: 8px; }
+.retry { justify-self: start; margin-left: 4px; border: 0; background: none; padding: 2px 4px; color: var(--thread); font-weight: 700; font-size: .8rem; cursor: pointer; text-decoration: underline dashed; text-underline-offset: 3px; }
+.files { display: flex; flex-wrap: wrap; gap: 6px; }
+.file { display: inline-flex; align-items: center; gap: 6px; border: 1.5px dashed color-mix(in srgb, var(--pal, var(--thread)) 70%, transparent); background: var(--surface); border-radius: 10px; padding: 5px 10px; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.file span { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.yarn { display: inline-flex; gap: 5px; padding: 6px 0; }
+.yarn i { width: 8px; height: 8px; border-radius: 50%; background: var(--pal, var(--thread)); animation: yarn 1.1s ease-in-out infinite; }
+.yarn i:nth-child(2) { animation-delay: .15s; }
+.yarn i:nth-child(3) { animation-delay: .3s; }
+
+/* Empty state */
+.hello { margin: auto; display: grid; justify-items: center; gap: 10px; text-align: center; padding-block: 12px; max-width: 34rem; }
+.hello .big { width: 112px; }
+.hello h2 { margin: 6px 0 0; font: 400 1.25rem/1.3 var(--display); text-wrap: balance; }
+.hello p { margin: 0; color: var(--muted); text-wrap: balance; }
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; padding: 8px 13px; font-size: .84rem; cursor: pointer; text-align: left; }
+.chip:hover { border-color: var(--thread); }
+.gate { margin: auto; display: grid; gap: 10px; justify-items: center; text-align: center; max-width: 30rem; }
+.gate input { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 9px 12px; min-width: 0; width: 14rem; }
+
+/* Composer */
+.composer { display: flex; align-items: flex-end; gap: 10px; padding-block: 10px 14px; }
+.composer textarea { flex: 1; min-width: 0; resize: none; max-height: 150px; padding: 12px 18px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 24px; line-height: 1.45; outline: none; }
+.composer textarea:focus { border-color: var(--thread); }
+.composer textarea:disabled { opacity: .7; }
+.send { flex: none; width: 48px; height: 48px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--thread); color: var(--thread-ink); cursor: pointer; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .14); }
+.send:disabled { opacity: .45; cursor: default; }
+.send svg { width: 30px; height: 30px; }
+
+/* Plushie parts */
+.plush { display: block; width: 100%; height: auto; overflow: visible; }
+.plush-claude { --st: var(--claude-lo); } .plush-gpt { --st: var(--gpt-lo); } .plush-gemini { --st: var(--gemini-lo); } .plush-grok { --st: var(--grok-lo); } .plush-all { --st: var(--thread); }
+.p-stitch { fill: none; stroke: var(--st); stroke-width: 1.5; stroke-dasharray: 2.4 2.6; stroke-linecap: round; }
+.p-whisker { fill: none; stroke: var(--eye); stroke-width: 1.4; stroke-dasharray: 2.2 2.4; stroke-linecap: round; opacity: .5; }
+.p-eye { fill: var(--eye); }
+.p-shine { fill: #fff; }
+.p-blush { fill: var(--blush); opacity: .55; }
+.p-nose { fill: var(--blush); }
+.p-beak { fill: var(--beak); }
+.p-line, .eyes-closed path { fill: none; stroke: var(--eye); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.eyes-closed, .zz { display: none; }
+.plush.asleep .eyes-open { display: none; }
+.plush.asleep .eyes-closed, .plush.asleep .zz { display: inline; }
+.plush.asleep { filter: saturate(.6); }
+.zz text { font-family: var(--display); font-size: 14px; fill: var(--muted); }
+.zz text + text { font-size: 10px; }
+.pal .eyes-open, .hello .eyes-open { transform-box: fill-box; transform-origin: center; animation: blink 6s infinite; }
+.plush-gpt .eyes-open { animation-delay: 1.4s; } .plush-gemini .eyes-open { animation-delay: 2.9s; } .plush-grok .eyes-open { animation-delay: 4.1s; }
+
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(.12); } }
+@keyframes hop { 0%, 100% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-5px) rotate(-4deg); } 70% { transform: translateY(0) rotate(3deg); } }
+@keyframes yarn { 0%, 100% { transform: translateY(0); opacity: .45; } 40% { transform: translateY(-4px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .pal .lift { transition: none; }
+  .pal.thinking .plush, .pal .eyes-open, .hello .eyes-open, .yarn i { animation: none; }
+}
+@media (min-width: 640px) {
+  .top { padding-top: 22px; }
+  .thread { padding-inline: 4px; }
+}
+</style>
+
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="g-claude" cx=".36" cy=".3" r=".8"><stop offset="0" style="stop-color:var(--claude-hi)"/><stop offset=".5" style="stop-color:var(--claude)"/><stop offset="1" style="stop-color:var(--claude-lo)"/></radialGradient>
+    <radialGradient id="g-gpt" cx=".36" cy=".3" r=".8"><stop offset="0" style="stop-color:var(--gpt-hi)"/><stop offset=".5" style="stop-color:var(--gpt)"/><stop offset="1" style="stop-color:var(--gpt-lo)"/></radialGradient>
+    <radialGradient id="g-gemini" cx=".36" cy=".3" r=".8"><stop offset="0" style="stop-color:var(--gemini-hi)"/><stop offset=".5" style="stop-color:var(--gemini)"/><stop offset="1" style="stop-color:var(--gemini-lo)"/></radialGradient>
+    <radialGradient id="g-grok" cx=".36" cy=".3" r=".8"><stop offset="0" style="stop-color:var(--grok-hi)"/><stop offset=".5" style="stop-color:var(--grok)"/><stop offset="1" style="stop-color:var(--grok-lo)"/></radialGradient>
+    <filter id="felt" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="noise"/>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0" result="grain"/>
+      <feComposite in="grain" in2="SourceGraphic" operator="in" result="speckle"/>
+      <feBlend in="SourceGraphic" in2="speckle" mode="multiply"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <h1 class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="var(--thread)"/><circle cx="12" cy="12" r="8" fill="none" stroke="var(--thread-ink)" stroke-width="1.2" stroke-dasharray="1.6 1.6" opacity=".7"/><circle cx="9.5" cy="9.5" r="1.4" fill="var(--thread-ink)"/><circle cx="14.5" cy="9.5" r="1.4" fill="var(--thread-ink)"/><circle cx="9.5" cy="14.5" r="1.4" fill="var(--thread-ink)"/><circle cx="14.5" cy="14.5" r="1.4" fill="var(--thread-ink)"/></svg>
+      Plushie Chat
+    </h1>
+    <div class="actions">
+      <label class="pill switch" id="agent-wrap" hidden><input type="checkbox" id="agent"> Make files</label>
+      <button class="pill" type="button" id="new-chat">New chat</button>
+    </div>
+  </header>
+  <nav class="shelf" id="shelf" aria-label="Who answers"></nav>
+  <p class="tag" id="tag" role="status"></p>
+  <main class="thread" id="thread" role="log" aria-live="polite"></main>
+  <form class="composer" id="composer" autocomplete="off">
+    <label class="sr" for="msg">Message</label>
+    <textarea id="msg" rows="1" placeholder="Message Claude…"></textarea>
+    <button class="send" id="send" type="submit" aria-label="Send">
+      <svg viewBox="0 0 30 30" aria-hidden="true" id="send-icon"><circle cx="15" cy="15" r="12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1.8 1.8" opacity=".55"/><path d="M15 21V9.5M10 14l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </form>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const PALS = {
+    claude: { name: "Claude", animal: "bunny" },
+    gpt: { name: "GPT", animal: "bear" },
+    gemini: { name: "Gemini", animal: "cat" },
+    grok: { name: "Grok", animal: "owl" },
+  };
+  const ORDER = ["claude", "gpt", "gemini", "grok"];
+  const SETUP_URL = "https://github.com/tashpulatovo211-art/mymain#readme";
+  const STORE = "plushie-chat:v1";
+  const RULES = "You're Claude, chatting with someone in Plushie Chat, a cozy chat page. " +
+    "Answer helpfully and directly. Keep replies short unless they ask for detail. " +
+    "They may be reading on a phone, so use light Markdown at most: short paragraphs and simple lists, no tables.";
+  const SUGGESTIONS = [
+    "Make me a 5-day study plan for SAT math",
+    "Explain black holes like I'm 12",
+    "Give me 5 names for a bunny plushie",
+  ];
+  const HOME_REASON = {
+    gpt: "ChatGPT plans don't include API access, so GPT answers through Codex on your computer.",
+    gemini: "Google AI plans don't include API access, so Gemini answers through Gemini CLI on your computer.",
+    grok: "SuperGrok doesn't include API access, so Grok needs an xAI API key on your computer.",
+    all: "In the home app all four plushies wake up and answer together.",
+  };
+  const SAMPLE_ERRORS = {
+    not_granted: ["Claude isn't allowed on this page, so I'm napping. Reload the page to be asked again.", "off"],
+    sampling_disabled: ["Claude isn't available for this account.", "off"],
+    not_declared: ["Claude can't answer on this page.", "off"],
+    capability_disabled: ["Claude can't answer on this page.", "off"],
+    capability_removed: ["Claude can't answer in this version of the app.", "off"],
+    rate_limited: ["I've hit a usage limit. Try again in a little while.", "retry"],
+    session_expired: ["Your Claude sign-in expired. Sign in again, then try once more.", "retry"],
+    refused: ["I can't help with that one. Try asking a different way.", ""],
+    prompt_too_large: ["This chat got too long for me. Tap New chat to start fresh.", ""],
+    empty_completion: ["I came back empty-handed. Try asking a bit differently.", ""],
+    upstream_error: ["Something went wrong on the way. Try again.", "retry"],
+  };
+
+  const CFG = window.MULTIBOT || null;
+  const MODE = CFG && CFG.local ? "local"
+    : (window.claude && typeof window.claude.use === "function" ? "claude" : "preview");
+
+  const $ = (sel) => document.querySelector(sel);
+  const els = {
+    shelf: $("#shelf"), tag: $("#tag"), thread: $("#thread"), form: $("#composer"),
+    input: $("#msg"), send: $("#send"), newChat: $("#new-chat"),
+    agentWrap: $("#agent-wrap"), agent: $("#agent"),
+  };
+  const coarse = window.matchMedia("(pointer: coarse)");
+
+  const state = {
+    selected: "claude",
+    messages: [],
+    awake: { claude: false, gpt: false, gemini: false, grok: false, all: false },
+    via: {},
+    hints: {},
+    offWhy: "",
+    agent: false,
+    workspace: "",
+    busy: false,
+    thinking: [],
+    ctl: null,
+    locked: false,
+    lockError: "",
+  };
+  let seq = 0;
+  const nextId = () => ++seq;
+
+  // ---------------------------------------------------------------- helpers
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function load(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+  }
+  function store(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage is a convenience */ }
+  }
+  const nameOf = (key) => (key === "all" ? "Everyone" : PALS[key].name);
+  const isAwake = (key) => state.awake[key] === true;
+  function size(n) {
+    if (n < 1024) return `${n} B`;
+    if (n < 1048576) return `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB`;
+    return `${(n / 1048576).toFixed(1)} MB`;
+  }
+
+  // A small, safe Markdown renderer: everything is escaped first.
+  function inline(raw) {
+    const codes = [];
+    let s = raw.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000`; });
+    s = esc(s);
+    s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/(^|[^*\w])\*([^*\n]+)\*(?=[^*\w]|$)/g, "$1<em>$2</em>");
+    s = s.replace(/(^|\W)_([^_\n]+)_(?=\W|$)/g, "$1<em>$2</em>");
+    return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${esc(codes[+i])}</code>`);
+  }
+  function blocks(text) {
+    let html = "";
+    let para = [];
+    let list = null;
+    const flushPara = () => { if (para.length) { html += `<p>${para.map(inline).join("<br>")}</p>`; para = []; } };
+    const flushList = () => {
+      if (!list) return;
+      const start = list.type === "ol" && list.start !== 1 ? ` start="${list.start}"` : "";
+      html += `<${list.type}${start}>${list.items.map((it) => `<li>${inline(it)}</li>`).join("")}</${list.type}>`;
+      list = null;
+    };
+    for (const line of text.split("\n")) {
+      const t = line.trim();
+      let m;
+      if (!t) { flushPara(); flushList(); continue; }
+      if (/^(-{3,}|\*{3,})$/.test(t)) { flushPara(); flushList(); html += "<hr>"; continue; }
+      if ((m = t.match(/^#{1,6}\s+(.*)$/))) { flushPara(); flushList(); html += `<p class="h">${inline(m[1])}</p>`; continue; }
+      if ((m = t.match(/^[-*•]\s+(.*)$/))) {
+        flushPara();
+        if (!list || list.type !== "ul") { flushList(); list = { type: "ul", items: [] }; }
+        list.items.push(m[1]);
+        continue;
+      }
+      if ((m = t.match(/^(\d+)[.)]\s+(.*)$/))) {
+        flushPara();
+        if (!list || list.type !== "ol") { flushList(); list = { type: "ol", items: [], start: +m[1] }; }
+        list.items.push(m[2]);
+        continue;
+      }
+      if (list && /^\s{2,}/.test(line)) { list.items[list.items.length - 1] += " " + t; continue; }
+      flushList();
+      para.push(t);
+    }
+    flushPara();
+    flushList();
+    return html;
+  }
+  function md(src) {
+    return src.split(/^```/m).map((part, i) => {
+      if (i % 2 === 0) return blocks(part);
+      const nl = part.indexOf("\n");
+      const code = nl >= 0 ? part.slice(nl + 1) : "";
+      return `<pre><code>${esc(code.replace(/\n$/, ""))}</code></pre>`;
+    }).join("");
+  }
+
+  // ---------------------------------------------------------------- plushies
+
+  const face = (lx, rx, y) => eyes(lx, rx, y) +
+    `<ellipse cx="${lx - 9}" cy="${y + 10}" rx="6.5" ry="3.8" class="p-blush"/>` +
+    `<ellipse cx="${rx + 9}" cy="${y + 10}" rx="6.5" ry="3.8" class="p-blush"/>`;
+  function eyes(lx, rx, y, big) {
+    const w = big ? 5.4 : 3.8, h = big ? 5.6 : 4.6, r = big ? 1.8 : 1.3;
+    const open = [lx, rx].map((x) =>
+      `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${h}" class="p-eye"/><circle cx="${x + 1.4}" cy="${y - 1.8}" r="${r}" class="p-shine"/>`).join("");
+    const shut = [lx, rx].map((x) => `<path d="M${x - 4.5} ${y} q4.5 3.6 9 0"/>`).join("");
+    return `<g class="eyes-open">${open}</g><g class="eyes-closed">${shut}</g>`;
+  }
+  const ANIMALS = {
+    bunny: (k) => `
+      <g filter="url(#felt)">
+        <ellipse cx="44" cy="33" rx="11" ry="27" transform="rotate(-14 44 33)" fill="url(#g-${k})"/>
+        <ellipse cx="76" cy="33" rx="11" ry="27" transform="rotate(14 76 33)" fill="url(#g-${k})"/>
+        <ellipse cx="44.5" cy="35" rx="5" ry="17" transform="rotate(-14 44.5 35)" style="fill:var(--ear-in)"/>
+        <ellipse cx="75.5" cy="35" rx="5" ry="17" transform="rotate(14 75.5 35)" style="fill:var(--ear-in)"/>
+        <ellipse cx="60" cy="80" rx="42" ry="35" fill="url(#g-${k})"/>
+        <ellipse cx="60" cy="97" rx="19" ry="12.5" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="42" cy="111" rx="11" ry="6" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="78" cy="111" rx="11" ry="6" style="fill:var(--${k}-hi)"/>
+      </g>
+      <ellipse class="p-stitch" cx="60" cy="97" rx="15.5" ry="9.5"/>
+      <path class="p-stitch" d="M60 47 V60"/>
+      ${face(47, 73, 74)}
+      <path class="p-line" d="M55.5 82 q2.25 3 4.5 0 q2.25 3 4.5 0"/>`,
+    bear: (k) => `
+      <g filter="url(#felt)">
+        <circle cx="33" cy="51" r="14" fill="url(#g-${k})"/>
+        <circle cx="87" cy="51" r="14" fill="url(#g-${k})"/>
+        <circle cx="33" cy="51" r="7.5" style="fill:var(--${k}-hi)"/>
+        <circle cx="87" cy="51" r="7.5" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="60" cy="80" rx="44" ry="35" fill="url(#g-${k})"/>
+        <ellipse cx="60" cy="89" rx="15" ry="11" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="40" cy="111" rx="12" ry="6" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="80" cy="111" rx="12" ry="6" style="fill:var(--${k}-hi)"/>
+      </g>
+      <ellipse class="p-stitch" cx="60" cy="89" rx="11.5" ry="7.8"/>
+      <path class="p-stitch" d="M60 46 V57"/>
+      ${face(45, 75, 74)}
+      <ellipse cx="60" cy="85.5" rx="4.2" ry="3.2" class="p-eye"/>
+      <path class="p-line" d="M60 88.7 v1.3 M55.5 90 q2.25 2.6 4.5 0 q2.25 2.6 4.5 0"/>`,
+    cat: (k) => `
+      <g filter="url(#felt)">
+        <path d="M28 60 L33 27 Q35 22 39 25 L53 46 Z" fill="url(#g-${k})"/>
+        <path d="M92 60 L87 27 Q85 22 81 25 L67 46 Z" fill="url(#g-${k})"/>
+        <path d="M35 52 L38 33 L48 45 Z" style="fill:var(--ear-in)"/>
+        <path d="M85 52 L82 33 L72 45 Z" style="fill:var(--ear-in)"/>
+        <ellipse cx="60" cy="80" rx="42" ry="34" fill="url(#g-${k})"/>
+        <path d="M66 86 A11 11 0 1 0 66 106 A13 13 0 0 1 66 86 Z" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="42" cy="110" rx="11" ry="6" style="fill:var(--${k}-hi)"/>
+        <ellipse cx="78" cy="110" rx="11" ry="6" style="fill:var(--${k}-hi)"/>
+      </g>
+      <path class="p-stitch" d="M66 86 A11 11 0 1 0 66 106 A13 13 0 0 1 66 86 Z"/>
+      <path class="p-whisker" d="M25 82 L39 84.5 M25 89 L39 88.5 M95 82 L81 84.5 M95 89 L81 88.5"/>
+      ${face(46, 74, 74)}
+      <path d="M57 81.5 L63 81.5 L60 85 Z" class="p-nose"/>
+      <path class="p-line" d="M60 85 v1.5 M55.5 87.5 q2.25 2.6 4.5 0 q2.25 2.6 4.5 0"/>`,
+    owl: (k) => `
+      <g filter="url(#felt)">
+        <path d="M31 52 L27 27 Q27 23 31 25 L48 40 Z" fill="url(#g-${k})"/>
+        <path d="M89 52 L93 27 Q93 23 89 25 L72 40 Z" fill="url(#g-${k})"/>
+        <ellipse cx="22" cy="86" rx="9" ry="19" transform="rotate(14 22 86)" style="fill:var(--${k}-lo)"/>
+        <ellipse cx="98" cy="86" rx="9" ry="19" transform="rotate(-14 98 86)" style="fill:var(--${k}-lo)"/>
+        <ellipse cx="60" cy="76" rx="40" ry="38" fill="url(#g-${k})"/>
+        <ellipse cx="60" cy="97" rx="22" ry="15" style="fill:var(--${k}-hi)"/>
+        <circle cx="46.5" cy="68" r="14" style="fill:var(--${k}-hi)"/>
+        <circle cx="73.5" cy="68" r="14" style="fill:var(--${k}-hi)"/>
+      </g>
+      <path class="p-stitch" d="M45 93 q3.75 3.5 7.5 0 q3.75 3.5 7.5 0 q3.75 3.5 7.5 0 q3.75 3.5 7.5 0 M48.75 100 q3.75 3.5 7.5 0 q3.75 3.5 7.5 0 q3.75 3.5 7.5 0"/>
+      ${eyes(46.5, 73.5, 68, true)}
+      <path d="M56 76 L64 76 L60 83 Z" class="p-beak"/>
+      <ellipse cx="49" cy="113" rx="7" ry="4" class="p-beak"/>
+      <ellipse cx="71" cy="113" rx="7" ry="4" class="p-beak"/>`,
+    all: () => ORDER.map((k, i) => {
+      const x = i % 2 ? 82 : 38, y = i < 2 ? 46 : 86;
+      return `<g filter="url(#felt)"><circle cx="${x}" cy="${y}" r="19" fill="url(#g-${k})"/></g>` +
+        `<ellipse cx="${x - 6}" cy="${y - 1}" rx="2.3" ry="2.9" class="p-eye"/><ellipse cx="${x + 6}" cy="${y - 1}" rx="2.3" ry="2.9" class="p-eye"/>` +
+        `<path class="p-line" d="M${x - 2.6} ${y + 5} q1.3 1.7 2.6 0 q1.3 1.7 2.6 0"/>`;
+    }).join(""),
+  };
+  function plush(key, extra = "") {
+    const animal = key === "all" ? "all" : PALS[key].animal;
+    return `<svg class="plush plush-${key} ${extra}" viewBox="0 0 120 120" aria-hidden="true" focusable="false">` +
+      `${ANIMALS[animal](key)}<g class="zz"><text x="92" y="36">z</text><text x="103" y="22">z</text></g></svg>`;
+  }
+
+  // ---------------------------------------------------------------- transports
+
+  function trimHistory(history, budget = 120000) {
+    const kept = [];
+    let used = 0;
+    for (let i = history.length - 1; i >= 0; i--) {
+      used += history[i].text.length;
+      if (used > budget) break;
+      kept.unshift(history[i]);
+    }
+    while (kept.length && kept[0].role !== "user") kept.shift();
+    return kept;
+  }
+
+  const transports = {
+    // On claude.ai: Claude answers through the viewer's own account.
+    claude: {
+      sample: null,
+      ready: null,
+      init() {
+        state.awake.claude = "waking";
+        const saved = load(STORE, null);
+        if (saved && Array.isArray(saved.messages)) {
+          state.messages = saved.messages.filter((m) => m && typeof m.text === "string").map((m) => ({ ...m, id: nextId() }));
+        }
+        if (saved && saved.selected in state.awake) state.selected = saved.selected;
+        for (const key of ["gpt", "gemini", "grok", "all"]) state.hints[key] = HOME_REASON[key];
+        this.ready = window.claude.use("sample").then(
+          (fn) => { this.sample = fn; setClaude(fn ? true : "off", fn ? "" : "Claude can't answer on this page here. Open it in the Claude app or on claude.ai."); },
+          () => setClaude("off", "Claude can't answer on this page."));
+      },
+      async ask(key, text, history, onText, signal) {
+        await this.ready;
+        if (!this.sample) throw { code: "capability_disabled" };
+        const turns = [{ role: "user", content: RULES }];
+        for (const m of trimHistory(history.filter((m) => !m.error && m.text && (m.role === "user" || m.key === "claude")))) {
+          turns.push({ role: m.role === "user" ? "user" : "assistant", content: m.text });
+        }
+        turns.push({ role: "user", content: text });
+        const res = await this.sample(turns, { cache: false, signal, onText: (u) => onText(u.text) });
+        return { text: res.text, note: res.truncated ? "Cut short. Ask for less at a time." : "" };
+      },
+      persist() {
+        const messages = state.messages.filter((m) => !m.pending).slice(-80).map(({ id, ...m }) => m);
+        store(STORE, { selected: state.selected, messages });
+      },
+      reset() {},
+      setModel() {},
+    },
+
+    // On your computer: python web.py serves this page and answers with all four.
+    local: {
+      passcode: load("plushie-chat:passcode", ""),
+      async call(path, body, signal) {
+        const res = await fetch(path, {
+          method: body === undefined ? "GET" : "POST",
+          headers: { "Content-Type": "application/json", "X-Multibot-Token": CFG.token, "X-Multibot-Passcode": this.passcode },
+          body: body === undefined ? undefined : JSON.stringify(body),
+          signal,
+        });
+        if (res.status === 401 || res.status === 403) {
+          const data = await res.json().catch(() => ({}));
+          if (data.passcode) { state.locked = true; state.lockError = this.passcode ? "That passcode didn't match." : ""; render(); }
+          throw { message: data.error || "Reload the page and try again." };
+        }
+        return res;
+      },
+      async json(path, body, signal) {
+        const res = await this.call(path, body, signal);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw { message: data.error || `The home app answered with error ${res.status}.` };
+        return data;
+      },
+      async init() {
+        els.agentWrap.hidden = false;
+        try {
+          this.apply(await this.json("/api/state"));
+          state.locked = false;
+        } catch (e) {
+          if (!state.locked) state.offWhy = e.message || "Couldn't reach the home app.";
+        }
+        render();
+      },
+      apply(s) {
+        for (const key of ORDER) state.awake[key] = false;
+        for (const m of s.models) {
+          if (!(m.key in PALS)) continue;
+          state.awake[m.key] = true;
+          state.via[m.key] = m.via;
+        }
+        state.awake.all = s.models.length > 1;
+        state.hints = s.missing || {};
+        state.hints.all = "Set up at least two plushies to ask everyone at once.";
+        state.agent = !!s.agent;
+        state.workspace = s.workspace || "";
+        if (s.current in PALS) state.selected = s.current;
+        state.messages = [];
+        for (const t of s.turns || []) {
+          state.messages.push({ id: nextId(), role: "user", text: t.user, to: t.key });
+          if (t.key === "all") {
+            for (const part of t.reply.split(/\n\n(?=\[(?:Claude|GPT|Gemini|Grok)\]\n)/)) {
+              const m = part.match(/^\[(Claude|GPT|Gemini|Grok)\]\n([\s\S]*)$/);
+              if (m) state.messages.push({ id: nextId(), role: "pal", key: m[1].toLowerCase(), text: m[2] });
+            }
+          } else {
+            state.messages.push({ id: nextId(), role: "pal", key: t.key in PALS ? t.key : "all", text: t.reply });
+          }
+        }
+      },
+      async ask(key, text, history, onText, signal) {
+        const data = await this.json("/api/ask", { text, model: key }, signal);
+        if (data.error) throw { message: data.error, retry: true };
+        return { text: data.text, files: data.files || [] };
+      },
+      async askAll(text, onAnswer, signal) {
+        const res = await this.call("/api/all", { text }, signal);
+        if (!res.ok || !res.body) throw { message: `The home app answered with error ${res.status}.` };
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let cut;
+          while ((cut = buffer.indexOf("\n")) >= 0) {
+            const line = buffer.slice(0, cut).trim();
+            buffer = buffer.slice(cut + 1);
+            if (line) onAnswer(JSON.parse(line));
+          }
+        }
+      },
+      setModel(key) { if (key in PALS) this.json("/api/model", { model: key }).catch(() => {}); },
+      async setAgent(on) {
+        const data = await this.json("/api/agent", { on });
+        state.agent = !!data.agent;
+      },
+      reset() { this.json("/api/new", {}).catch(() => {}); },
+      async download(path, name) {
+        const res = await this.call(`/api/file?path=${encodeURIComponent(path)}`);
+        if (!res.ok) throw { message: "That file isn't there anymore." };
+        const url = URL.createObjectURL(await res.blob());
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      },
+    },
+
+    // Opened some other way: show the plushies, all asleep.
+    preview: {
+      init() {
+        state.offWhy = "This is a preview. Open the page on claude.ai to talk to Claude, or run the home app for all four.";
+        for (const key of ["gpt", "gemini", "grok", "all"]) state.hints[key] = HOME_REASON[key];
+      },
+      async ask() { throw { message: state.offWhy }; },
+      reset() {},
+      setModel() {},
+    },
+  };
+  const transport = transports[MODE];
+
+  function setClaude(value, why) {
+    state.awake.claude = value;
+    if (why) state.offWhy = why;
+    render();
+  }
+
+  // ---------------------------------------------------------------- talking
+
+  function persist() { if (transport.persist) transport.persist(); }
+
+  function startBusy(keys) {
+    state.busy = true;
+    state.thinking = keys;
+    state.ctl = new AbortController();
+    render();
+    return state.ctl.signal;
+  }
+  function endBusy() {
+    state.busy = false;
+    state.thinking = [];
+    state.ctl = null;
+    persist();
+    render();
+  }
+
+  async function send(raw) {
+    const text = raw.trim();
+    if (!text || state.busy) return;
+    if (state.selected === "all") return sendAll(text);
+    const key = state.selected;
+    if (!isAwake(key)) return;
+    const history = state.messages.filter((m) => !m.pending);
+    state.messages.push({ id: nextId(), role: "user", text, to: key });
+    const reply = { id: nextId(), role: "pal", key, text: "", pending: true };
+    state.messages.push(reply);
+    const signal = startBusy([key]);
+    scrollDown(true);
+    try {
+      const res = await transport.ask(key, text, history, (partial) => {
+        reply.text = partial;
+        reply.pending = false;
+        updateMessage(reply);
+      }, signal);
+      Object.assign(reply, { text: res.text, files: res.files || [], note: res.note || "", pending: false });
+    } catch (e) {
+      handleFailure(reply, e);
+    } finally {
+      endBusy();
+      scrollDown();
+    }
+  }
+
+  function handleFailure(reply, e) {
+    reply.pending = false;
+    if (e && e.name === "AbortError") e = { code: "cancelled" };
+    if (e && e.code === "cancelled") {
+      reply.text = e.text || "";
+      reply.note = "Stopped.";
+      if (!reply.text) state.messages.splice(state.messages.indexOf(reply), 1);
+      return;
+    }
+    if (e && e.code) {
+      const [message, kind] = SAMPLE_ERRORS[e.code] || SAMPLE_ERRORS.upstream_error;
+      reply.text = e.code === "refused" ? "" : (e.text || "");
+      reply.error = message;
+      reply.retry = kind === "retry";
+      if (kind === "off") setClaude("off", message);
+      return;
+    }
+    reply.text = "";
+    reply.error = (e && e.message) || "Something went wrong. Try again.";
+    reply.retry = !!(e && e.retry);
+  }
+
+  async function sendAll(text) {
+    if (!isAwake("all") || !transport.askAll) return;
+    const keys = ORDER.filter(isAwake);
+    state.messages.push({ id: nextId(), role: "user", text, to: "all" });
+    const replies = {};
+    for (const key of keys) {
+      replies[key] = { id: nextId(), role: "pal", key, text: "", pending: true };
+      state.messages.push(replies[key]);
+    }
+    const signal = startBusy(keys);
+    scrollDown(true);
+    try {
+      await transport.askAll(text, (item) => {
+        const reply = replies[item.key];
+        if (!reply) return;
+        reply.pending = false;
+        if (item.error) Object.assign(reply, { error: item.error, text: "" });
+        else reply.text = item.text || "";
+        state.thinking = state.thinking.filter((k) => k !== item.key);
+        updateMessage(reply);
+        renderShelf();
+      }, signal);
+    } catch (e) {
+      if (!(e && e.name === "AbortError")) {
+        for (const reply of Object.values(replies)) if (reply.pending) reply.error = (e && e.message) || "No answer.";
+      }
+    } finally {
+      for (const reply of Object.values(replies)) {
+        if (reply.pending) { reply.pending = false; reply.error = reply.error || "No answer."; }
+      }
+      state.messages = state.messages.filter((m) => !(m.role === "pal" && !m.text && m.error === "No answer." && signal.aborted));
+      endBusy();
+      scrollDown();
+    }
+  }
+
+  function retry(id) {
+    const i = state.messages.findIndex((m) => m.id === id);
+    if (i < 1 || state.busy) return;
+    const question = state.messages[i - 1];
+    if (question.role !== "user") return;
+    state.messages.splice(i - 1, 2);
+    state.selected = question.to in PALS ? question.to : state.selected;
+    send(question.text);
+  }
+
+  function select(key) {
+    if (state.busy) return;
+    state.selected = key;
+    transport.setModel(key);
+    persist();
+    render();
+    if (!coarse.matches) els.input.focus();
+  }
+
+  // ---------------------------------------------------------------- rendering
+
+  function tagHTML(key) {
+    const name = `<b>${esc(nameOf(key))}</b>`;
+    const setup = ` <a href="${SETUP_URL}" target="_blank" rel="noopener noreferrer">Set up the home app</a>`;
+    if (MODE === "local") {
+      if (state.locked) return "The home app is locked.";
+      if (state.offWhy && !ORDER.some(isAwake)) return esc(state.offWhy);
+      if (!isAwake(key)) return `${name} isn't set up yet. ${esc(state.hints[key] || "")}`;
+      if (key === "all") return `${name} answers at once: ${ORDER.filter(isAwake).map(nameOf).join(", ")}.`;
+      const files = state.agent ? ` · makes files in ${esc(state.workspace)}` : "";
+      return `${name} · ${esc(state.via[key] || "")}${files}`;
+    }
+    if (key === "claude") {
+      if (state.awake.claude === "waking") return `${name} is waking up…`;
+      if (state.awake.claude === true) return `${name} answers right here, using your Claude account.`;
+      return `${name} is napping. ${esc(state.offWhy)}`;
+    }
+    return `${name} lives in the home app. ${esc(state.hints[key] || "")}${setup}`;
+  }
+
+  function renderShelf() {
+    if (!els.shelf.childElementCount) {
+      for (const key of [...ORDER, "all"]) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "pal";
+        b.dataset.key = key;
+        b.innerHTML = `<span class="lift">${plush(key)}</span><span class="pal-name">${esc(nameOf(key))}</span>`;
+        b.addEventListener("click", () => select(key));
+        els.shelf.append(b);
+      }
+    }
+    for (const b of els.shelf.children) {
+      const key = b.dataset.key;
+      const on = key === state.selected;
+      b.setAttribute("aria-pressed", String(on));
+      b.setAttribute("aria-label", `${nameOf(key)}${isAwake(key) ? "" : ", asleep"}`);
+      b.querySelector(".plush").classList.toggle("asleep", !isAwake(key) && state.awake[key] !== "waking");
+      b.classList.toggle("thinking", (state.thinking || []).includes(key));
+    }
+  }
+
+  function messageHTML(m) {
+    if (m.role === "user") {
+      return `<div class="body"><div class="bubble">${esc(m.text).replace(/\n/g, "<br>")}</div></div>`;
+    }
+    let content = "";
+    if (m.pending) content = `<span class="yarn" role="img" aria-label="Thinking"><i></i><i></i><i></i></span>`;
+    else content = m.text ? md(m.text) : "";
+    if (m.error) content += `<p class="err">${esc(m.error)}</p>`;
+    const files = (m.files || []).length
+      ? `<div class="files">${m.files.map((f) => `<button type="button" class="file" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${esc(f.name)} <span>${size(f.size)}</span></button>`).join("")}</div>`
+      : "";
+    const note = m.note ? `<div class="note">${esc(m.note)}</div>` : "";
+    const retryBtn = m.retry ? `<button type="button" class="retry" data-retry="${m.id}">Try again</button>` : "";
+    const key = m.key in PALS ? m.key : "all";
+    return `<div class="avatar">${plush(key)}</div><div class="body"><div class="who">${esc(nameOf(key))}</div>` +
+      `<div class="bubble${m.error ? " error" : ""}">${content}</div>${files}${note}${retryBtn}</div>`;
+  }
+
+  function messageNode(m) {
+    const node = document.createElement("div");
+    node.className = `msg ${m.role === "user" ? "me" : "pal"}`;
+    node.dataset.id = m.id;
+    if (m.role !== "user") node.style.setProperty("--pal", `var(--${m.key in PALS ? m.key : "thread"})`);
+    node.innerHTML = messageHTML(m);
+    return node;
+  }
+
+  function updateMessage(m) {
+    const near = isNearBottom();
+    const node = els.thread.querySelector(`[data-id="${m.id}"]`);
+    if (node) node.innerHTML = messageHTML(m);
+    if (near) scrollDown();
+  }
+
+  function helloHTML() {
+    if (state.locked) {
+      return `<form class="gate" id="gate"><h2>Locked</h2><p>Type the passcode from WEB_PASSCODE in the home app's .env file.</p>` +
+        `<input id="gate-code" type="password" autocomplete="current-password" aria-label="Passcode">` +
+        `<button class="pill" type="submit">Unlock</button>${state.lockError ? `<p class="err">${esc(state.lockError)}</p>` : ""}</form>`;
+    }
+    const key = state.selected;
+    const name = nameOf(key);
+    const awake = isAwake(key);
+    let title;
+    let text;
+    if (key === "all") {
+      title = awake ? "Ask everyone at once" : "Everyone's asleep here";
+      text = awake ? "Every plushie answers the same question, side by side." : "";
+    } else if (state.awake[key] === "waking") {
+      title = `${name} is waking up…`;
+      text = "";
+    } else if (awake) {
+      title = `Hi, I'm ${name}!`;
+      text = "Ask me anything.";
+    } else {
+      title = `Shh, ${name} is asleep`;
+      text = "";
+    }
+    const chips = awake ? `<div class="chips">${SUGGESTIONS.map((s) => `<button type="button" class="chip">${esc(s)}</button>`).join("")}</div>` : "";
+    return `<div class="hello"><div class="big">${plush(key, awake || state.awake[key] === "waking" ? "" : "asleep")}</div>` +
+      `<h2>${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ""}${chips}</div>`;
+  }
+
+  function renderThread() {
+    els.thread.setAttribute("aria-busy", String(state.busy));
+    if (!state.messages.length || state.locked) {
+      els.thread.innerHTML = helloHTML();
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    for (const m of state.messages) frag.append(messageNode(m));
+    els.thread.replaceChildren(frag);
+  }
+
+  function renderComposer() {
+    const key = state.selected;
+    const awake = isAwake(key) && !state.locked;
+    els.input.disabled = !awake;
+    els.input.placeholder = awake
+      ? (key === "all" ? "Ask everyone…" : `Message ${nameOf(key)}…`)
+      : `${nameOf(key)} is asleep here`;
+    els.send.disabled = !state.busy && !awake;
+    els.send.setAttribute("aria-label", state.busy ? "Stop" : "Send");
+    els.send.innerHTML = state.busy
+      ? `<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1.8 1.8" opacity=".55"/><rect x="10" y="10" width="10" height="10" rx="2.5" fill="currentColor"/></svg>`
+      : `<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1.8 1.8" opacity=".55"/><path d="M15 21V9.5M10 14l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    els.newChat.disabled = state.busy || !state.messages.length;
+    els.agent.checked = state.agent;
+    els.agent.disabled = state.busy;
+  }
+
+  function render() {
+    renderShelf();
+    els.tag.innerHTML = tagHTML(state.selected);
+    els.tag.style.setProperty("--tag-color", `var(--${state.selected in PALS ? state.selected : "thread"})`);
+    renderThread();
+    renderComposer();
+  }
+
+  function isNearBottom() {
+    const t = els.thread;
+    return t.scrollHeight - t.scrollTop - t.clientHeight < 140;
+  }
+  function scrollDown(force) {
+    if (force || isNearBottom()) requestAnimationFrame(() => { els.thread.scrollTop = els.thread.scrollHeight; });
+  }
+
+  // ---------------------------------------------------------------- events
+
+  els.form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (state.busy) { if (state.ctl) state.ctl.abort(); return; }
+    const text = els.input.value;
+    if (!text.trim()) return;
+    els.input.value = "";
+    grow();
+    send(text);
+  });
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing && !coarse.matches) {
+      e.preventDefault();
+      els.form.requestSubmit();
+    }
+  });
+  function grow() {
+    els.input.style.height = "auto";
+    els.input.style.height = `${Math.min(els.input.scrollHeight + 3, 150)}px`;
+  }
+  els.input.addEventListener("input", grow);
+
+  els.newChat.addEventListener("click", () => {
+    if (state.busy) return;
+    state.messages = [];
+    transport.reset();
+    persist();
+    render();
+  });
+
+  els.agent.addEventListener("change", async () => {
+    const want = els.agent.checked;
+    try {
+      await transport.setAgent(want);
+    } catch (e) {
+      state.agent = !want;
+    }
+    render();
+  });
+
+  els.thread.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (chip) { send(chip.textContent); return; }
+    const again = e.target.closest("[data-retry]");
+    if (again) { retry(+again.dataset.retry); return; }
+    const file = e.target.closest(".file");
+    if (file && transport.download) {
+      transport.download(file.dataset.path, file.dataset.name).catch((err) => { file.title = err.message || "Download failed"; });
+    }
+  });
+  els.thread.addEventListener("submit", (e) => {
+    if (e.target.id !== "gate") return;
+    e.preventDefault();
+    const code = e.target.querySelector("#gate-code").value;
+    transports.local.passcode = code;
+    store("plushie-chat:passcode", code);
+    transports.local.init();
+  });
+
+  render();
+  transport.init();
+  render();
+})();
+</script>
