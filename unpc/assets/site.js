@@ -113,18 +113,37 @@
     }
   }
 
+  // A polite status next to each Copy button, so screen readers hear the result.
+  function addCopyStatus(root = document) {
+    $$("[data-copy]", root).forEach((button) => {
+      if (button.nextElementSibling && button.nextElementSibling.matches("[data-copy-status]")) return;
+      const status = document.createElement("span");
+      status.className = "sr-only";
+      status.setAttribute("role", "status");
+      status.dataset.copyStatus = "";
+      button.after(status);
+    });
+  }
+
   function setupCopy() {
+    addCopyStatus();
     document.addEventListener("click", async (e) => {
       const button = e.target.closest("[data-copy]");
       if (!button) return;
       const original = button.dataset.label || button.textContent;
       button.dataset.label = original;
+      const status = button.nextElementSibling && button.nextElementSibling.matches("[data-copy-status]") ? button.nextElementSibling : null;
       const say = (text) => {
         button.textContent = text;
+        if (status) status.textContent = text === "Copied" ? "Email address copied" : "Email address selected";
         clearTimeout(button._timer);
-        button._timer = setTimeout(() => (button.textContent = original), 1800);
+        button._timer = setTimeout(() => {
+          button.textContent = original;
+          if (status) status.textContent = "";
+        }, 1800);
       };
       try {
+        if (document.featurePolicy && !document.featurePolicy.allowsFeature("clipboard-write")) throw new Error("blocked");
         await navigator.clipboard.writeText(button.dataset.copy);
         say("Copied");
       } catch {
@@ -212,7 +231,11 @@
         start();
       } else start();
     });
-    if (reset) reset.addEventListener("click", clear);
+    if (reset)
+      reset.addEventListener("click", () => {
+        clear();
+        toggle.focus();
+      });
     setState("idle");
     return { reset: clear };
   }
@@ -423,6 +446,9 @@
     dialog.setAttribute("aria-labelledby", "person-name");
     dialog.innerHTML = `
       <div class="person-inner">
+        <button type="button" class="person-close" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+        </button>
         <div class="photo person-photo" data-slot>
           <img alt="">
         </div>
@@ -439,9 +465,6 @@
             <button type="button" class="btn-text" data-step="1">Next</button>
           </div>
         </div>
-        <button type="button" class="person-close" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
-        </button>
       </div>`;
     document.body.append(dialog);
 
@@ -475,6 +498,7 @@
       field(".person-more").textContent = p.more || "";
       field(".person-more").hidden = !p.more;
       field(".person-links").innerHTML = linksHtml(p.links);
+      addCopyStatus(field(".person-links"));
       field(".person-count").textContent = index + 1 + " of " + shown.length;
       if (p.id) setUrl("#" + p.id);
     };
@@ -536,8 +560,16 @@
       const trigger = e.target.closest("[data-person]");
       if (trigger) open(Number(trigger.dataset.person), trigger, true);
     });
+    const outside = (e) => {
+      const r = dialog.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    let pressedOutside = false;
+    dialog.addEventListener("pointerdown", (e) => {
+      pressedOutside = e.target === dialog && outside(e);
+    });
     dialog.addEventListener("click", (e) => {
-      if (e.target === dialog) close();
+      if (e.target === dialog && pressedOutside && outside(e)) close();
       const step = e.target.closest("[data-step]");
       if (step) fill(index + Number(step.dataset.step));
     });
@@ -585,7 +617,7 @@
       ${logoSlot(p)}
       <div>
         <p class="partner-role">${esc(p.role)}</p>
-        <h3>${esc(p.name)}</h3>
+        <h2>${esc(p.name)}</h2>
         ${p.detail ? `<p class="partner-detail">${esc(p.detail)}</p>` : ""}
         <p class="partner-text">${esc(p.text)}</p>
         ${host ? `<a class="partner-url" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(host)}</a>` : ""}
