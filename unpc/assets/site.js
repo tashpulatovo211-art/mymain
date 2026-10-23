@@ -5,6 +5,7 @@
   const config = data.config || {};
   const people = data.organizers || [];
   const partners = data.partners || [];
+  const shown = people.filter((p) => !p.placeholder);
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -350,11 +351,21 @@
       <button type="button" class="person-trigger" data-person="${i}" aria-haspopup="dialog">
         <span class="photo" data-slot>
           <img src="${esc(p.photo)}" alt="" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Add photo</strong><code>${esc(p.photo)}</code></span>
         </span>
         <span class="person-name">${esc(p.name)}</span>
         <span class="person-role">${esc(p.role)}</span>
       </button>
+    </li>`;
+
+  // A role that has no organizer yet: a quiet slot, not a button.
+  const roleCard = (p) => `
+    <li class="person-card is-placeholder">
+      <div class="person-trigger">
+        <span class="photo" data-slot>
+          <img src="${esc(p.photo)}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="person-name">${esc(p.role)}</span>
+      </div>
     </li>`;
 
   // On the Team page the first person gets a full-width row with their bio.
@@ -363,7 +374,6 @@
       <button type="button" class="person-trigger" data-person="${i}" aria-haspopup="dialog" aria-label="${esc(p.name)}, ${esc(p.role)}">
         <span class="photo" data-slot>
           <img src="${esc(p.photo)}" alt="" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Add photo</strong><code>${esc(p.photo)}</code></span>
         </span>
       </button>
       <div class="lead-text">
@@ -379,15 +389,20 @@
     const lists = $$("[data-people]");
     if (!lists.length || !people.length) return;
     lists.forEach((list) => {
-      const limit = Number(list.dataset.limit) || people.length;
       const featured = list.dataset.people === "team";
-      list.innerHTML = people
+      const source = people;
+      const limit = Number(list.dataset.limit) || source.length;
+      list.innerHTML = source
         .slice(0, limit)
-        .map((p, i) => (featured && i === 0 ? leadCard(p, i) : personCard(p, i)))
+        .map((p, i) => {
+          if (p.placeholder) return roleCard(p);
+          const n = shown.indexOf(p);
+          return featured && i === 0 ? leadCard(p, n) : personCard(p, n);
+        })
         .join("");
       $$("img", list).forEach(watchImage);
     });
-    setupPersonDialog();
+    if (shown.length) setupPersonDialog();
   }
 
   function linksHtml(links = {}) {
@@ -410,7 +425,6 @@
       <div class="person-inner">
         <div class="photo person-photo" data-slot>
           <img alt="">
-          <span class="photo-hint"><strong>Add photo</strong><code></code></span>
         </div>
         <div class="person-body">
           <p class="person-kicker"></p>
@@ -433,20 +447,26 @@
 
     const photo = $(".person-photo", dialog);
     const img = $("img", photo);
-    const hintPath = $(".photo-hint code", photo);
     const closeButton = $(".person-close", dialog);
     const field = (sel) => $(sel, dialog);
     let index = 0;
     let list = null;
+    let opener = null;
+    let baseHash = "";
+    const setUrl = (u) => {
+      try {
+        history.replaceState(null, "", u);
+      } catch {}
+    };
     watchImage(img);
+    $(".person-steps", dialog).hidden = shown.length < 2;
 
     const fill = (i) => {
-      index = (i + people.length) % people.length;
-      const p = people[index];
+      index = (i + shown.length) % shown.length;
+      const p = shown[index];
       photo.classList.remove("has-image");
       img.alt = p.placeholder ? "" : "Portrait of " + p.name;
       img.src = p.photo;
-      hintPath.textContent = p.photo;
       field(".person-kicker").textContent = p.role;
       field("#person-name").textContent = p.name;
       field(".person-school").textContent = p.school || "";
@@ -455,14 +475,18 @@
       field(".person-more").textContent = p.more || "";
       field(".person-more").hidden = !p.more;
       field(".person-links").innerHTML = linksHtml(p.links);
-      field(".person-count").textContent = index + 1 + " of " + people.length;
-      if (p.id) history.replaceState(null, "", "#" + p.id);
+      field(".person-count").textContent = index + 1 + " of " + shown.length;
+      if (p.id) setUrl("#" + p.id);
     };
 
     const cardPhoto = (i) => (list ? $(`[data-person="${i}"] .photo`, list) : null);
     const canMorph = (el) => el && document.startViewTransition && !reduced.matches;
 
-    const open = (i, trigger) => {
+    const open = (i, trigger, user) => {
+      if (!dialog.open) {
+        opener = user ? trigger : null;
+        if (!shown.some((p) => "#" + p.id === location.hash)) baseHash = location.hash;
+      }
       list = trigger ? trigger.closest("[data-people]") : $("[data-people]");
       const from = (trigger && $(".photo", trigger)) || cardPhoto(i);
       const show = () => {
@@ -486,14 +510,14 @@
 
     const close = () => {
       const to = cardPhoto(index);
-      const back = to ? to.closest("[data-person]") : null;
+      const back = opener && Number(opener.dataset.person) === index ? opener : to ? to.closest("[data-person]") : null;
       const hide = () => {
         dialog.close();
-        history.replaceState(null, "", location.pathname + location.search);
+        setUrl(location.pathname + location.search + baseHash);
       };
       if (!canMorph(to) || !dialog.open) {
         hide();
-        if (back) back.focus();
+        if (back) back.focus({ preventScroll: !opener });
         return;
       }
       photo.style.viewTransitionName = "person-photo";
@@ -504,13 +528,13 @@
       });
       vt.finished.finally(() => {
         to.style.viewTransitionName = "";
-        if (back) back.focus();
+        if (back) back.focus({ preventScroll: !opener });
       });
     };
 
     document.addEventListener("click", (e) => {
       const trigger = e.target.closest("[data-person]");
-      if (trigger) open(Number(trigger.dataset.person), trigger);
+      if (trigger) open(Number(trigger.dataset.person), trigger, true);
     });
     dialog.addEventListener("click", (e) => {
       if (e.target === dialog) close();
@@ -523,11 +547,12 @@
       close();
     });
     dialog.addEventListener("keydown", (e) => {
+      if (shown.length < 2) return;
       if (e.key === "ArrowRight") fill(index + 1);
       if (e.key === "ArrowLeft") fill(index - 1);
     });
 
-    const fromHash = people.findIndex((p) => p.id && "#" + p.id === location.hash);
+    const fromHash = shown.findIndex((p) => p.id && "#" + p.id === location.hash);
     if (fromHash > -1) {
       const trigger = $(`[data-people] [data-person="${fromHash}"]`);
       open(fromHash, trigger);
@@ -538,7 +563,7 @@
 
   const logoSlot = (p) => `
     <div class="logo-slot" data-slot>
-      <img src="${esc(p.logo)}" alt="${esc(p.name)}" loading="lazy" decoding="async">
+      <img src="${esc(p.logo)}" alt="${esc(p.name)}" decoding="async">
       <span class="logo-word">${esc(p.short || p.name)}</span>
     </div>`;
 

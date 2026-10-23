@@ -9,7 +9,7 @@
 <meta property="og:title" content="Uzbekistan National Policy Competition">
 <meta property="og:description" content="Every Sunday in Tashkent, high school teams get one real policy problem and an hour to solve it.">
 <meta property="og:image" content="photos/hero.jpg">
-<meta name="theme-color" content="#f1f3f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1012" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23007891'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-weight='800' font-size='34' fill='white'%3EU%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,7 +49,7 @@
 
 <main id="main">
 
-  <section class="hero tint" aria-labelledby="hero-title">
+  <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
       <div class="hero-copy">
         <h1 id="hero-title"><span>Uzbekistan</span> <span>National</span> <span>Policy</span> <span>Competition</span></h1>
@@ -79,10 +79,12 @@
               <div class="case-item">
                 <p class="case-topic">Young people’s responsibility for a healthy society</p>
                 <p class="case-q">Identify the social behavior or harmful habit that poses the greatest challenge to young people today, and propose a practical policy solution to address it.</p>
+                <p class="case-note">Each team picks the habit it argues about.</p>
               </div>
               <div class="case-item">
                 <p class="case-topic">A young person’s own responsibility for national values</p>
                 <p class="case-q">Part one: in an increasingly globalized world, what responsibility does an individual young person have in preserving national culture, language, traditions and historical memory? Part two: how can the state encourage young people to preserve national values without forcing them to?</p>
+                <p class="case-note">Teams answer both parts.</p>
               </div>
             </div>
             <div class="case-foot">
@@ -91,19 +93,19 @@
                 <span class="clock" data-clock role="timer">60:00</span>
               </div>
               <div class="case-actions">
-                <button class="btn btn-primary" type="button" data-clock-toggle>Start the hour</button>
+                <button class="btn btn-line" type="button" data-clock-toggle>Start the hour</button>
                 <button class="btn-text" type="button" data-clock-reset hidden>Reset</button>
                 <button class="btn-text" type="button" data-draw>Draw another case</button>
               </div>
             </div>
           </article>
         </div>
-        <p class="deck-note">The four cases from the first tournament. The briefs were written in Uzbek, and these are our English translations.</p>
+        <p class="deck-note">The four cases from the first tournament, translated from Uzbek. None of them needed knowledge of tax, constitutional law or macroeconomics.</p>
       </div>
     </div>
   </section>
 
-  <section class="lead-photo" aria-label="The first tournament">
+  <section class="lead-photo" aria-label="UNPC so far">
     <div class="wrap">
       <figure>
         <div class="photo" data-slot>
@@ -112,23 +114,14 @@
         </div>
         <figcaption class="caption">The first tournament, Sodiq School, Tashkent, 4 October 2026.</figcaption>
       </figure>
-    </div>
-  </section>
-
-  <section class="section" id="numbers" aria-labelledby="numbers-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="numbers-title">The numbers so far</h2>
-        <p class="lede">The first tournament was on Sunday 4 October 2026, and there has been one every Sunday since.</p>
-      </div>
       <dl class="figures">
         <div class="figure"><dt>500+</dt><dd>students engaged in the competition</dd></div>
         <div class="figure"><dt>100+</dt><dd>volunteer organizers</dd></div>
         <div class="figure"><dt>2</dt><dd>countries, with the Kazakhstan National Policy Competition</dd></div>
-        <div class="figure"><dt>7 + 5</dt><dd>minutes for each team, seven to present and five to answer the judges</dd></div>
       </dl>
     </div>
   </section>
+
 
   <section class="section band-dark" id="format" aria-labelledby="format-title">
     <div class="wrap" data-day>
@@ -179,22 +172,17 @@
         <li class="step phase-awards" data-phase="awards">
           <p class="step-time">15 min</p>
           <h3>Award ceremony</h3>
-          <p>The winning team and the best speaker from each room get certificates and prizes.</p>
+          <p>The winning team and the best speaker from each room get certificates and prizes. The best speaker can come from the losing team.</p>
         </li>
       </ol>
     </div>
   </section>
 
-  <section class="section tint" id="judging" aria-labelledby="judging-title">
+  <section class="section" id="judging" aria-labelledby="judging-title">
     <div class="wrap judging">
       <div class="head">
         <h2 id="judging-title">Judges score each team out of 100.</h2>
-        <p class="lede">Two teams work on the same case in each room, and the judges score both on one sheet. Move the sliders to try it.</p>
-        <ul class="rules">
-          <li>If the totals are equal, the team with the higher score for quality of the solution wins the room.</li>
-          <li>The best speaker is picked separately, and can come from the losing team.</li>
-          <li>Judges score how students think, argue, speak and write. They do not rule on whether a technical proposal is correct, so a judge from any field can score a room.</li>
-        </ul>
+        <p class="lede">Two teams work on the same case in each room, and the judges score both on one sheet. The sheet starts on a tie, so move the sliders to see who wins.</p>
       </div>
 
       <div class="sheet" data-sheet>
@@ -250,43 +238,10 @@
           <output data-total="b" data-label="B">78</output>
         </div>
         <p class="verdict" data-verdict aria-live="polite">Tied at 78. Team A wins on quality of the solution, 17 to 14.</p>
-        <p class="sheet-note">The scores start as an example of a tied room.</p>
       </div>
     </div>
   </section>
 
-  <section class="section" id="cases" aria-labelledby="cases-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="cases-title">The cases from the first tournament</h2>
-        <p class="lede">All four were about young people, language, culture and social habits. None of them needed knowledge of tax, constitutional law or macroeconomics.</p>
-      </div>
-      <ol class="case-list">
-        <li>
-          <span class="case-no">Case 1</span>
-          <h3>National identity and values among young people in a globalized world</h3>
-          <p class="q">How can Uzbekistan strengthen national identity and cultural values among young people without limiting their openness to global culture and international exchange?</p>
-        </li>
-        <li>
-          <span class="case-no">Case 2</span>
-          <h3>The Uzbek language, a foreign language and a practical skill</h3>
-          <p class="q">How can an effective system be created so that young people, while keeping the Uzbek language and national identity, acquire at least one foreign language and one practical profession or professional skill?</p>
-        </li>
-        <li>
-          <span class="case-no">Case 3</span>
-          <h3>Young people’s responsibility for a healthy society</h3>
-          <p class="q">Identify the social behavior or harmful habit that poses the greatest challenge to young people today, and propose a practical policy solution to address it.</p>
-          <p class="note">Each team picks the habit it argues about.</p>
-        </li>
-        <li>
-          <span class="case-no">Case 4</span>
-          <h3>A young person’s own responsibility for national values</h3>
-          <p class="q">Part one: in an increasingly globalized world, what responsibility does an individual young person have in preserving national culture, language, traditions and historical memory? Part two: how can the state encourage young people to preserve national values without forcing them to?</p>
-          <p class="note">Teams answer both parts.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
 
   <section class="section tint" id="first" aria-labelledby="first-title">
     <div class="wrap first">
@@ -300,7 +255,6 @@
           <div><dt>Guest</dt><dd>Bobur Bekmurodov, member of the Legislative Chamber of the Oliy Majlis</dd></div>
           <div><dt>Prizes</dt><dd>Certificates for the winning team and the best speaker, and a year of The Diplomat for the winners</dd></div>
           <div><dt>Afterwards</dt><dd>We sent the winning proposal to Bobur Bekmurodov</dd></div>
-          <div><dt>Coffee break</dt><dd>Free</dd></div>
         </dl>
       </div>
       <div class="mosaic">

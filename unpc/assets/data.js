@@ -12,7 +12,9 @@ window.UNPC = {
     nextTournament: ""
   },
 
-  // The first person is shown large on the Team page and opens the list on the home page.
+  // The first person is shown large on the Team page.
+  // Entries with placeholder: true show only their role, cannot be clicked, and are left out of the dialog.
+  // When you fill in a real person, delete their "placeholder: true" line.
   // Portraits are 4:5. Put each file at the path in "photo" (at least 800 x 1000 px).
   organizers: [
     {

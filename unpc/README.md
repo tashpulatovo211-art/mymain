@@ -28,7 +28,7 @@ All the data that changes is in `assets/data.js`. Edit the file, save it, and re
 
 ## Add photos
 
-Put each photo at the path below. Until a file exists, the site shows a striped frame with the path in it.
+Put each photo at the path below. Until a file exists, the site shows a plain grey frame in its place.
 
 | Where on the site | File | Shape |
 |---|---|---|
