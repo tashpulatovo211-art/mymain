@@ -14,6 +14,9 @@
   const SVGNS = "http://www.w3.org/2000/svg";
   const page = document.body.getAttribute("data-page");
 
+  // A resize (a phone turned on its side) brings the reader's block back under the nav, as on the home page.
+  if (S.keepPlace) S.keepPlace();
+
   const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
   const word = (n) => WORDS[n] || String(n);
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -94,6 +97,8 @@
       const cx = 320;
       const cy = 349;
       const R = 300;
+      // The six front seats: r 15, so they stay about 21px across in the 448px figure of the wide hero.
+      const r = 15;
       svg.textContent = "";
       C.chamberSVG(svg, { n: 100, q: 0.6, cx, cy, R, rK: 0.26, cls: () => "back", attrs: (i) => ({ style: "--i:" + i }) });
       // Intro order for the front row: open seats left to right, then the signed ones, the founder last.
@@ -109,13 +114,13 @@
         const y = fmt(cy - Math.sin(th) * R * 0.4);
         const j = seq.indexOf(i);
         if (p.placeholder) {
-          svgEl("circle", { class: "front open", cx: x, cy: y, r: 11, pathLength: 72, style: "--j:" + j }, g);
+          svgEl("circle", { class: "front open", cx: x, cy: y, r, pathLength: 72, style: "--j:" + j }, g);
           return;
         }
-        rings[p.id] = svgEl("circle", { class: "pulse", cx: x, cy: y, r: 11 }, g);
+        rings[p.id] = svgEl("circle", { class: "pulse", cx: x, cy: y, r }, g);
         // A pointer click on the seat opens the dialog through site.js (the figure itself is aria-hidden).
         // It carries the id, not the index, so focus after a deep-linked dialog goes to the founder portrait.
-        leads[p.id] = svgEl("circle", { class: "front lead", cx: x, cy: y, r: 11, style: "--j:" + j, "data-person": p.id, "data-seat-for": p.id }, g);
+        leads[p.id] = svgEl("circle", { class: "front lead", cx: x, cy: y, r, style: "--j:" + j, "data-person": p.id, "data-seat-for": p.id }, g);
       });
       introWhenSeen(svg.closest(".team-fig") || svg, 640 + seq.length * 70 + 360);
     }
@@ -187,7 +192,7 @@
         .join("");
     }
 
-    /* ----- The founder seat answers its triggers: a ring expands from r 11 to 16 and fades (600ms) ----- */
+    /* ----- The founder seat answers its triggers: a ring expands to 16/11 of the seat's r and fades (600ms) ----- */
     const rowsFor = (id) => $$('[data-seat-row="' + id + '"]');
     function seatOn(id, on, play) {
       const ring = rings[id];

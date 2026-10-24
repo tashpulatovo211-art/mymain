@@ -125,7 +125,9 @@
     ];
     return [pts[slot][0] * s, pts[slot][1] * s];
   }
-  // The grid of n cells of the given aspect (w / h) that gives the biggest cells inside w x h.
+  // The grid of n cells of the given aspect (w / h) that gives the biggest cells inside w x h. Each empty cell (a
+  // partial last row) costs a quarter of the cell size, so a full grid wins unless a partial one has far bigger
+  // cells: with 0.02 a cell, 70 rooms came out 6 by 12 plus an orphan row of 4 at 1920x1080, where 7 by 10 fits.
   function bestGrid(n, w, h, aspect, evenOnly) {
     let best = null;
     for (let cols = 1; cols <= n; cols++) {
@@ -133,7 +135,7 @@
       const rows = Math.ceil(n / cols);
       const cw = Math.min(w / cols, (h / rows) * aspect);
       const waste = cols * rows - n;
-      const score = cw - waste * 0.02 * cw;
+      const score = cw * Math.max(0, 1 - waste * 0.25);
       if (!best || score > best.score) best = { cols, rows, cw, ch: cw / aspect, score };
     }
     return best;

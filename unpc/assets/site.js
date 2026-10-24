@@ -1,6 +1,6 @@
 /* UNPC shared behaviour, on every page.
    Theme, nav and phone menu, next Sunday in Tashkent, register fallback, Copy with status,
-   photo slots, the Next block bookend, and the organizer dialog with deep links.
+   photo slots, the Next block bookend, the organizer dialog with deep links, and the reader's place across a resize.
    Exposed as window.UNPCSite. Classic defer script; loads after data.js and chamber.js. */
 (function () {
   "use strict";
@@ -169,6 +169,114 @@
     return () => layoutFns.delete(fn);
   };
 
+  /* ---------- The reader's place across a resize ---------- */
+
+  const navEl = $("[data-nav]");
+  const navBottom = () => (navEl ? Math.max(0, navEl.getBoundingClientRect().bottom) : 0);
+  // The block the reader is on, under root: the first block element in view under the line (the nav's bottom edge), and
+  // inside it the deepest one that still crosses the line, as { el, top, vis }: top is its top's distance below the line
+  // (negative for one that crosses it) and vis how much of it lies below the line. null when there is none. Inline
+  // boxes are passed over, and so are sticky, fixed and absolute ones, which do not move with the text (the day bar).
+  function readBlock(root, line) {
+    let best = null;
+    let box = root;
+    while (box) {
+      let next = null;
+      for (const el of box.children) {
+        const r = el.getBoundingClientRect();
+        if (r.bottom <= line || r.height <= 0) continue;
+        const cs = getComputedStyle(el);
+        if (cs.display.startsWith("inline") || cs.position === "sticky" || cs.position === "fixed" || cs.position === "absolute") continue;
+        next = { el, top: r.top - line, vis: r.bottom - line };
+        break;
+      }
+      if (!next) break;
+      best = next;
+      box = next.top < 0 ? next.el : null;
+    }
+    return best;
+  }
+  // Where block b's line is now (window px), so the gap from the nav's bottom edge is the scroll that brings it back: its
+  // top at the same distance from that edge, unless it has grown shorter, when as much of it stays below the edge as did
+  // before (or all of it), so it never ends up wholly above it. null when it has no box (gone, or hidden at this size).
+  const blockTop = (b) => {
+    if (!b || !b.el.isConnected) return null;
+    const r = b.el.getBoundingClientRect();
+    return r.height > 0 ? r.top - Math.max(b.top, Math.min(b.vis, r.height) - r.height) : null;
+  };
+  // keepPlace(onRead) keeps the reader's block across a resize (a phone turned on its side): the text above them reflows
+  // and scrollY stays put, and the browser's own scroll anchoring does not hold it (a phone's rotation anchor finds the
+  // fixed nav at the top of the window; on a desktop the gutters and type sizes that follow the window width suppress
+  // it). The block (readBlock() of the page under the nav's bottom edge) is read after each scroll and each reflow in
+  // main at the same window size (a phone's address bar, under 120px, does not count). After a resize its top goes back
+  // to the same distance from the edge in the first frame (before the first paint at the new size) and again on the next
+  // two, as nearby content-visibility sections render. Until the reader scrolls it stays the block they were on, so
+  // turning the phone back returns the same place exactly. At the very top of the page there is none, and the top stays.
+  // onRead(kept) runs after each read, with kept true while the reader is still where a restore (or hold()) left them.
+  function keepPlace(onRead) {
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+    const same = () => window.innerWidth === w && Math.abs(window.innerHeight - h) < 120;
+    let block = null;
+    let keptY = -1; // the scrollY a restore left the reader at
+    const kept = () => keptY >= 0 && window.scrollY === keptY;
+    let readRaf = 0;
+    let backRaf = 0;
+    const read = () => {
+      readRaf = 0;
+      if (!same()) return;
+      if (!kept()) {
+        keptY = -1;
+        block = window.scrollY > 0 ? readBlock(document.body, navBottom()) : null;
+      }
+      if (onRead) onRead(kept());
+    };
+    const queue = () => {
+      if (!readRaf) readRaf = requestAnimationFrame(read);
+    };
+    // b stays the reader's block, at this window size, until they scroll from here
+    const hold = (b) => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      block = b;
+      keptY = b ? window.scrollY : -1;
+    };
+    const back = (b, again) => {
+      backRaf = 0;
+      const bt = blockTop(b);
+      if (bt != null && Math.abs(bt - navBottom()) >= 1) window.scrollBy(0, bt - navBottom());
+      if (again) backRaf = requestAnimationFrame(() => back(b, again - 1));
+      else {
+        hold(bt != null ? b : null);
+        read();
+      }
+    };
+    const onResize = () => {
+      if (same() || backRaf) return;
+      const b = block;
+      backRaf = requestAnimationFrame(() => back(b, 2));
+    };
+    on(window, "scroll", queue, { passive: true });
+    on(window, "resize", onResize, { passive: true });
+    const ro = window.ResizeObserver ? new ResizeObserver(queue) : null;
+    if (ro) $$("main > *").forEach((el) => ro.observe(el));
+    read();
+    return {
+      block: () => block,
+      same,
+      kept,
+      hold,
+      stop() {
+        window.removeEventListener("scroll", queue);
+        window.removeEventListener("resize", onResize);
+        if (ro) ro.disconnect();
+        cancelAnimationFrame(readRaf);
+        cancelAnimationFrame(backRaf);
+        readRaf = backRaf = 0;
+      }
+    };
+  }
+
   /* ---------- Nav and phone menu ---------- */
 
   function setupNav() {
@@ -196,6 +304,11 @@
         setOpen(false);
         button.focus();
       }
+    });
+    // Focus that leaves the bar and the panel (a Tab past the last link) closes it, so it never sits on the page under
+    // the scrim. Focus stays where it went.
+    on(nav, "focusout", (e) => {
+      if (isOpen() && e.relatedTarget && !nav.contains(e.relatedTarget)) setOpen(false);
     });
     // A tap outside the bar and the panel (on the scrim) closes it, and does nothing else: on touch, the click that
     // follows the tap would otherwise land on whatever the scrim covered once it has gone, so that click is dropped.
@@ -528,24 +641,29 @@
       if (p.id) setUrl("#" + p.id);
     };
 
-    // The portrait the dialog grows out of: the trigger itself, a portrait inside it,
-    // or (for text triggers and deep links) a visible portrait of the same person.
+    // Where the dialog grows out of: the trigger itself, a portrait inside it, the clicked seat of the team chamber or
+    // the trigger's own seat mark (Team's founder row), else (other text triggers and deep links) a portrait of the same
+    // person at least three quarters in view, so the panel never starts mostly below the fold. null: it fades in instead.
+    // A seat or mark is widened to at least 48px (in the portrait's 4:5) so the scale stays gentle.
+    const widened = (el) => {
+      const r = el.getBoundingClientRect();
+      if (!(r.width > 0 && r.height > 0)) return null;
+      const w = Math.max(48, r.width);
+      const h = w * 1.25;
+      return { left: r.left + r.width / 2 - w / 2, top: r.top + r.height / 2 - h / 2, width: w, height: h };
+    };
     const sourceRect = (trigger, i) => {
       let el = null;
       if (trigger) el = trigger.matches("[data-portrait], .portrait") ? trigger : $("[data-portrait], .portrait", trigger);
-      // A seat of the team chamber: the seat itself, widened to at least 48px (in the portrait's 4:5) so the scale stays gentle.
-      if (!el && trigger instanceof SVGElement) {
-        const r = trigger.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) {
-          const w = Math.max(48, r.width);
-          const h = w * 1.25;
-          return { left: r.left + r.width / 2 - w / 2, top: r.top + r.height / 2 - h / 2, width: w, height: h };
-        }
+      if (!el && trigger) {
+        const seat = trigger instanceof SVGElement ? trigger : $(".role-mark, .sign-mark", trigger);
+        const r = seat && widened(seat);
+        if (r) return r;
       }
       if (!el) {
         el = $$('[data-person="' + i + '"] [data-portrait], [data-person="' + i + '"][data-portrait], [data-person="' + i + '"] .portrait').find((n) => {
           const r = n.getBoundingClientRect();
-          return r.width > 0 && r.bottom > 0 && r.top < window.innerHeight;
+          return r.width > 0 && Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0) >= r.height * 0.75;
         });
       }
       if (!el) return null;
@@ -571,12 +689,21 @@
           // FLIP: from the clicked portrait's rect to the dialog portrait's rect.
           const pr = panel.getBoundingClientRect();
           const to = photo.getBoundingClientRect();
-          const s = from.width / to.width;
-          const sy = from.height / to.height;
-          const tx = from.left - pr.left - (to.left - pr.left) * s;
-          const ty = from.top - pr.top - (to.top - pr.top) * sy;
+          let s = from.width / to.width;
+          let sy = from.height / to.height;
+          let tx = from.left - pr.left - (to.left - pr.left) * s;
+          let ty = from.top - pr.top - (to.top - pr.top) * sy;
+          // A source portrait larger than the dialog's (Team's founder portrait) would make the panel start oversized
+          // and shrink into place. The panel never starts above its size: it starts at 0.94, with its portrait's centre
+          // on the clicked portrait's centre, and grows into place from there.
+          if (s > 0.94 || sy > 0.94) {
+            s = sy = 0.94;
+            tx = from.left + from.width / 2 - pr.left - (to.left - pr.left + to.width / 2) * s;
+            ty = from.top + from.height / 2 - pr.top - (to.top - pr.top + to.height / 2) * s;
+          }
           panel.animate([{ transform: "translate(" + tx + "px," + ty + "px) scale(" + s + "," + sy + ")", borderRadius: "6px" }, { transform: "none" }], { duration: 620, easing: ease });
-          body.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 0, transform: "translateY(14px)", offset: 0.35 }, { opacity: 1, transform: "none" }], { duration: 620, easing: ease });
+          // Linear timing with the ease on the last leg, so the text stays hidden for the first 35% of the time.
+          body.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 0, transform: "translateY(14px)", offset: 0.35, easing: ease }, { opacity: 1, transform: "none" }], { duration: 620 });
           closeButton.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1 }], { duration: 620 });
         } else {
           panel.animate([{ opacity: 0, transform: "translateY(10px) scale(.98)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: ease });
@@ -739,6 +866,11 @@
     // shared loops and signals
     onScroll,
     onLayout,
+    // the reader's place across a resize
+    navBottom,
+    readBlock,
+    blockTop,
+    keepPlace,
     // next Sunday and contact
     nextDate,
     tashkentToday,

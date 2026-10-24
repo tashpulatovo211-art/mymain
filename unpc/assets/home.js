@@ -15,11 +15,12 @@
 
   /* ---------- 6.1 The day bar ---------- */
 
-  // The five parts of the day, in minutes from the start (124 to 139 in all).
+  // The five parts of the day, in minutes from the start (124 to 139 in all). short: the track's label, which the
+  // readout shows instead of a long name when the bar is too narrow for it (style.css).
   const PHASES = [
-    { name: "Welcome and guest speaker", dur: "20 to 30 minutes", from: 0, to: 30 },
+    { name: "Welcome and guest speaker", short: "Welcome", dur: "20 to 30 minutes", from: 0, to: 30 },
     { name: "Preparation", dur: "60 minutes", from: 30, to: 90 },
-    { name: "Presentations and questions", dur: "24 minutes per room", from: 90, to: 114 },
+    { name: "Presentations and questions", short: "Presenting", dur: "24 minutes per room", from: 90, to: 114 },
     { name: "Written resolution", dur: "5 to 10 minutes", from: 114, to: 124 },
     { name: "Award ceremony", dur: "15 minutes", from: 124, to: 139 }
   ];
@@ -42,7 +43,8 @@
       return { el, after, from, to, phase, top: 0, h: 1 };
     });
 
-    // Layout is read here only: on resize, font load, window load and when the list changes size.
+    // Layout is read here only: on resize, font load, window load and when the list or the page changes size (the story
+    // switching to its static form moves every article).
     let vh = window.innerHeight;
     let secTop = 0;
     let secBottom = 0;
@@ -96,8 +98,9 @@
           nameEl.textContent = "After the day";
           durEl.textContent = "";
         } else {
-          nameEl.textContent = PHASES[phase].name;
-          durEl.textContent = PHASES[phase].dur;
+          const ph = PHASES[phase];
+          nameEl.innerHTML = ph.short ? '<span class="dn-long">' + ph.name + '</span><span class="dn-short">' + ph.short + "</span>" : ph.name;
+          durEl.textContent = ph.dur;
         }
       }
       if (cur !== lastArt) {
@@ -111,14 +114,16 @@
     S.onScroll((y) => update(y, false));
     if (window.ResizeObserver) {
       let queued = false;
-      new ResizeObserver(() => {
+      const ro = new ResizeObserver(() => {
         if (queued) return;
         queued = true;
         requestAnimationFrame(() => {
           queued = false;
           measure();
         });
-      }).observe(list);
+      });
+      ro.observe(list);
+      ro.observe(section.parentElement || document.body);
     }
   }
 
@@ -212,7 +217,10 @@
   /* ---------- 6.1 The case deck: a physical stack at rest, with keynote's tuck-under draw ---------- */
 
   // Resting transforms by depth. The top card always rests at none, so its text stays crisp.
-  const POS = ["none", "translate(-6px, 5px) rotate(-1.6deg)", "translate(-12px, 10px) rotate(-3.2deg)", "translate(-12px, 10px) rotate(-3.2deg)"];
+  const POS_WIDE = ["none", "translate(-6px, 5px) rotate(-1.6deg)", "translate(-12px, 10px) rotate(-3.2deg)", "translate(-12px, 10px) rotate(-3.2deg)"];
+  // One-column pages (760px and below, as style.css): smaller offsets, so the under-card edges stop at the gutter.
+  const POS_NARROW = ["none", "translate(-4px, 4px) rotate(-0.7deg)", "translate(-8px, 8px) rotate(-1.4deg)", "translate(-8px, 8px) rotate(-1.4deg)"];
+  const narrowDeck = window.matchMedia ? window.matchMedia("(max-width: 760px)") : null;
 
   function setupDeck() {
     const deck = $("[data-deck]");
@@ -279,6 +287,7 @@
         return;
       }
       deck.classList.add("is-drawing");
+      const POS = narrowDeck && narrowDeck.matches ? POS_NARROW : POS_WIDE;
       const A = cards[prev];
       const B = cards[t];
       const C = rest.length ? cards[rest[0]] : null;

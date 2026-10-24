@@ -24,7 +24,9 @@
     if (!CH || !story) return;
     const PAPER = window.UNPCPaper || null;
     const { N, Q, RUBRIC, C, clamp, lerp, smooth, easeIO, easeOut, angLerp, rng, shuffle, seats, scaleCounts, bestGrid, clusterOffset, makeF, chamber, mix, palette } = CH;
-    // Seats on the WebGL sheet: --seat, darkened toward --ground in dark mode, because the sheet stays light.
+    // Seats on the WebGL sheet: --seat, darkened 38% toward --ground in dark mode, because the sheet stays light. In dark
+    // mode every seat takes it as the sheet arrives, the ones still beside the sheet too, so it must read on both: about
+    // 4:1 on the tinted sheet and 3.4:1 on the dark ground.
     // Kept as an extra palette entry (index 17) so mix() can blend toward it; refreshed whenever the palette is re-read.
     const ON_PAPER = 17;
     let onPaperDark = false;
@@ -32,7 +34,7 @@
       if (palette.rgb.length > ON_PAPER && onPaperDark === darken && palette.str[ON_PAPER]) return;
       const a = palette.rgb[C.seat];
       const g = CH.hexToRgb(palette.ground);
-      const k = darken ? 0.5 : 0;
+      const k = darken ? 0.38 : 0;
       const rgb = [0, 1, 2].map((j) => Math.round(a[j] + (g[j] - a[j]) * k));
       palette.rgb[ON_PAPER] = rgb;
       palette.str[ON_PAPER] = "rgb(" + rgb.join(",") + ")";
@@ -41,6 +43,8 @@
     }
     const LW = PAPER ? PAPER.LW : 1024;
     const LH = PAPER ? PAPER.LH : 1448;
+    // the baseline of the form's last printed section label (paper.js FORM); f4 marks the seats bound for the lines under it
+    const LAST_LABEL_Y = PAPER ? PAPER.FORM.sections[PAPER.FORM.sections.length - 1].y : 1108;
     const $ = (s, r = story) => r.querySelector(s);
     const $$ = (s, r = story) => Array.from(r.querySelectorAll(s));
     const site = () => window.UNPCSite || null;
@@ -70,7 +74,7 @@
       return { sizes, members, count: sizes.length };
     })();
 
-    // The crowd: a phyllotaxis disc, ordered by angle from the left over the top, so the chamber unrolls into it.
+    // The crowd: a phyllotaxis disc in unit space (build() assigns its points to the seats).
     let crowdCache = null;
     function crowdUnit() {
       if (crowdCache) return crowdCache;
@@ -80,11 +84,6 @@
         const th = i * 2.39996;
         pts.push([Math.cos(th) * r, Math.sin(th) * r]);
       }
-      const key = (p) => {
-        const a = Math.atan2(-p[1], p[0]);
-        return (((Math.PI - a) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-      };
-      pts.sort((a, b) => key(a) - key(b));
       crowdCache = pts;
       return pts;
     }
@@ -158,15 +157,33 @@
         }
       }
 
-      // f1: 500+ students, a phyllotaxis disc
+      // f1: 500+ students, a phyllotaxis disc. Which seat takes which point: the seats (where leg 1 left them, v0) and
+      // the points are both sorted by angle around the disc's centre, from the left over the top, and matched in runs
+      // of 26 by distance from that centre, so each seat steps to a point near it and the chamber dissolves into the
+      // crowd where it stands. (Matched by rank of angle from the left, the right wing travelled round to the disc's
+      // lower left, through one corridor, and piled up there just before the hold.)
       const f1 = makeF(N);
       {
         const pts = crowdUnit();
         const rr = (Math.min(B.w, B.h) / 2) * 0.94;
         const size = rr * Math.sqrt(Math.PI / N) * 0.5;
+        const key = (x, y) => {
+          const a = Math.atan2(bcy - y, x - bcx);
+          return (((Math.PI - a) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        };
+        const dist = (x, y) => Math.hypot(x - bcx, y - bcy);
+        const P = pts.map((p) => [bcx + p[0] * rr, bcy + p[1] * rr]).sort((a, b) => key(a[0], a[1]) - key(b[0], b[1]));
+        const ids = [...Array(N).keys()].sort((a, b) => key(v0.x[a], v0.y[a]) - key(v0.x[b], v0.y[b]));
+        const RUN = 26;
+        for (let s0 = 0; s0 < N; s0 += RUN) {
+          const run = ids.slice(s0, s0 + RUN).sort((a, b) => dist(v0.x[a], v0.y[a]) - dist(v0.x[b], v0.y[b]));
+          const at = P.slice(s0, s0 + RUN).sort((a, b) => dist(a[0], a[1]) - dist(b[0], b[1]));
+          run.forEach((id, j) => {
+            f1.x[id] = at[j][0];
+            f1.y[id] = at[j][1];
+          });
+        }
         for (let i = 0; i < N; i++) {
-          f1.x[i] = bcx + pts[i][0] * rr;
-          f1.y[i] = bcy + pts[i][1] * rr;
           f1.s[i] = size;
           f1.e[i] = 0;
           f1.o[i] = 0;
@@ -180,8 +197,10 @@
         const rooms = TEAMS.count / 2;
         const g = bestGrid(rooms, B.w, B.h, wide ? 1.55 : 1.0);
         const short = Math.min(g.cw, g.ch);
-        const cs = short * 0.22;
-        const size = short * 0.136;
+        // Narrow rooms stack Team A over Team B: smaller, tighter clusters set further apart, so a clear gap (about
+        // twice the space between two members) keeps the two teams apart instead of one column of 7 or 8 dots.
+        const cs = short * (wide ? 0.22 : 0.18);
+        const size = short * (wide ? 0.136 : 0.116);
         const oy = bcy - (g.rows * g.ch) / 2 + g.ch / 2;
         const lastRow = Math.floor((rooms - 1) / g.cols);
         const lastCount = rooms - lastRow * g.cols;
@@ -195,7 +214,7 @@
           for (let side = 0; side < 2; side++) {
             const t = r * 2 + side;
             const sx = wide ? (side ? 1 : -1) * g.cw * 0.2 : 0;
-            const sy = wide ? 0 : (side ? 1 : -1) * g.ch * 0.2;
+            const sy = wide ? 0 : (side ? 1 : -1) * g.ch * 0.23;
             TEAMS.members[t].forEach((id, slot) => {
               const off = clusterOffset(TEAMS.sizes[t], slot, cs);
               f2.x[id] = rx + sx + off[0];
@@ -227,6 +246,7 @@
       const f4 = makeF(N);
       const tw = new Float32Array(N);
       const readOf = new Int16Array(N);
+      const drop = new Uint8Array(N);
       const sheet = sheetRect(B, wide);
       const lines = paperLines();
       {
@@ -255,6 +275,9 @@
             f4.c[id] = ON_PAPER;
             tw[id] = L.t0 + (L.t1 - L.t0) * f;
             readOf[id] = idx;
+            // the last section's seats are the chamber's lowest, which sit above its printed label or on it (by the window's
+            // shape): they drop first and then run along their line, so they cross the label once, straight down
+            drop[id] = L.ly > LAST_LABEL_Y ? 1 : 0;
             idx++;
           }
         });
@@ -320,6 +343,28 @@
         }
       }
 
+      // vX, the unpin (wide): the filled chamber glides back to the stage's centre line at the hero's size, a mirror of leg 1,
+      // so the story ends on the figure it opened with and the Preamble scrolls in under a centred chamber. It never shrinks
+      // (a short window makes the hero's chamber small to fit the hero copy, which has long gone). Its floor settles a quarter
+      // of its radius above the formation box's bottom edge, so the Preamble's first row comes up about 175px under it
+      // (1440x900) and the two read as one page. Narrow stages keep the chamber where it is: it is already centred.
+      const vX = makeF(N);
+      {
+        const RE = wide ? Math.max(hero.R, R5) : R5;
+        const kE = RE / R5;
+        const cxE = wide ? hero.cx : bcx;
+        const cyE = wide ? Math.max(cy5, B.y + B.h - RE * 0.25) : cy5;
+        for (let i = 0; i < N; i++) {
+          vX.x[i] = cxE + (f5.x[i] - bcx) * kE;
+          vX.y[i] = cyE + (f5.y[i] - cy5) * kE;
+          vX.s[i] = f5.s[i] * kE;
+          vX.e[i] = 0.6;
+          vX.o[i] = f5.o[i];
+          vX.c[i] = C.azure;
+        }
+        over.exitName = { x: cxE, y: cyE - RE * Q * 0.45, fs: clamp(RE * 0.07, 15, 24) };
+      }
+
       // Transitions: who moves first, and how much each path bends.
       const rand = rng(33);
       const mk = (spread, delayFn, bend) => {
@@ -334,14 +379,73 @@
       const draw = rng(9);
       const T = {
         leg1: mk(0.12, (i) => f0.rank[i] / N, 0),
-        crowd: mk(0.32, (i) => f0.rank[i] / N, 0.1),
+        crowd: mk(0.45, (i) => f0.rank[i] / N, 0.1),
         rooms: mk(0.55, () => draw(), 0.18),
         score: mk(0.5, (i) => rank3[i] / N, 0.14),
         page: mk(0.5, (i) => readOf[i] / N, 0.12),
-        fill: mk(0.5, (i) => fillRank[i] / N, 0.08)
+        fill: mk(0.5, (i) => fillRank[i] / N, 0.08),
+        // the unpin glide: leg 1 played back (its spread, the right wing first and the left wing last), so the wing nearest
+        // the stepper moves once it has gone; a wider spread squeezed the well until the "Oliy Majlis" name touched the seats
+        exit: mk(0.12, (i) => f5.o[i] / Math.PI, 0)
       };
+      T.page.drop = drop;
 
-      return { F: [f0, f1, f2, f3, f4, f5], V: { v0, v5, v5f }, T, tw, lines, over, geo };
+      return { F: [f0, f1, f2, f3, f4, f5], V: { v0, v5, v5f, vX }, T, tw, lines, over, geo };
+    }
+    // The printed labels of the form, in texture units (1024 x 1448), each as [x0, x1, y0, y1] boxes: the header, the field
+    // names Team, Room and Case, the field name Date, and the three section titles. The same regions as paper.js's shader
+    // (uLabA, uLabB).
+    const PRINT_LABELS = [
+      [[96, 928, 88, 152]],
+      [[96, 152, 205, 240], [96, 152, 283, 318], [96, 152, 361, 396]],
+      [[510, 585, 283, 318]],
+      [[96, 600, 458, 500]],
+      [[96, 600, 822, 864]],
+      [[96, 700, 1078, 1120]]
+    ];
+    const labA = (clear, u) => 0.12 + 0.88 * smooth(clear, clear + 0.06, u);
+    // The sheet's printed labels arrive under the score chamber, which is still standing: each label stays faint (12%)
+    // until the last seat over it, or flying across it, has left, then comes up over 0.06 (paper.js uLab). Each clock is
+    // measured on the page move's own paths (3.60 to 4.30), once per layout (only the pinned story needs it), so no seat
+    // ever cuts through printed words.
+    function printClears(model) {
+      const over = model.over;
+      if (over.labClear) return over.labClear;
+      const sheet = over.sheet;
+      const f3 = model.F[3];
+      const f4 = model.F[4];
+      const P = model.T.page;
+      const drop = P.drop;
+      over.labClear = PRINT_LABELS.map((boxes) => {
+        const R = boxes.map((b) => ({
+          x0: sheet.left + (b[0] / LW) * sheet.w,
+          x1: sheet.left + (b[1] / LW) * sheet.w,
+          y0: sheet.top + (b[2] / LH) * sheet.h,
+          y1: sheet.top + (b[3] / LH) * sheet.h
+        }));
+        let last = 3.6;
+        for (let u = 3.6; u <= 4.3001; u += 0.005) {
+          const m = (u - 3.6) / 0.7;
+          let hit = false;
+          for (let i = 0; i < N && !hit; i++) {
+            const e = easeIO(clamp((m - P.d[i] * P.spread) / (1 - P.spread)));
+            const ax = f3.x[i];
+            const ay = f3.y[i];
+            const bx = f4.x[i];
+            const by = f4.y[i];
+            const qx = drop[i] ? ax : (ax + bx) / 2 - (by - ay) * P.b[i];
+            const qy = drop[i] ? by : (ay + by) / 2 + (bx - ax) * P.b[i];
+            const u1 = 1 - e;
+            const x = u1 * u1 * ax + 2 * u1 * e * qx + e * e * bx;
+            const y = u1 * u1 * ay + 2 * u1 * e * qy + e * e * by;
+            const r = lerp(f3.s[i], f4.s[i], e) * 0.9 + 2; // half a capsule's length, and 2px of air
+            hit = R.some((b) => x + r > b.x0 && x - r < b.x1 && y + r > b.y0 && y - r < b.y1);
+          }
+          if (hit) last = u + 0.005;
+        }
+        return last;
+      });
+      return over.labClear;
     }
 
     // Overlays for still frames (drawStatic): room outlines, sector points, the "Oliy Majlis" name.
@@ -373,15 +477,19 @@
     }
     // Canvas text waits for the web font (chamber.js redraws stills again once fonts are ready).
     const fontsReady = () => !doc.fonts || doc.fonts.status === "loaded" || doc.fonts.check('400 20px "Source Serif 4"');
-    function drawName(ctx, over, a) {
+    // k: how far the unpin glide has taken the chamber (0 = in the formation box, 1 = on the centre line)
+    function drawName(ctx, over, a, k = 0) {
       if (a <= 0.003 || !fontsReady()) return;
-      const fs = over.fs;
+      const X = over.exitName;
+      const fs = X && k > 0 ? lerp(over.fs, X.fs, k) : over.fs;
+      const x = X && k > 0 ? lerp(over.rostrum.x, X.x, k) : over.rostrum.x;
+      const y = X && k > 0 ? lerp(over.rostrum.y, X.y, k) : over.rostrum.y;
       ctx.globalAlpha = a;
       ctx.fillStyle = palette.ink;
       ctx.font = "400 " + fs.toFixed(1) + 'px "Source Serif 4", Georgia, serif';
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText("Oliy Majlis", over.rostrum.x, over.rostrum.y + fs * 0.34);
+      ctx.fillText("Oliy Majlis", x, y + fs * 0.34);
       ctx.globalAlpha = 1;
     }
 
@@ -450,16 +558,23 @@
       return motionOk && mq.matches && !tooShort;
     }
 
-    // A reader below the story: the section they are in, as { anchorId, frac, k }. That is the last section after the
-    // story whose top has reached 40% of the window; frac is how far through it the nav's bottom edge sits, and k, for a
-    // top still lower than that edge (frac < 0), how far that top is from the edge toward the 40% line (0 to 1). null
+    // A reader below the story: where they are, as { anchorId, frac, k, block }. block is the block they are on, the
+    // first block in view under the nav's bottom edge and the deepest one in it that crosses that edge (site.js
+    // readBlock() of the whole page). anchorId is the last section after the story whose top has reached 40% of the
+    // window; frac is how far through it that edge sits, and k, for a top still lower than the edge (frac < 0), how far
+    // that top is from the edge toward the 40% line (0 to 1): the place when the block has no box at the new size. null
     // when no section has reached the line. Each mode reads it after the reader's scrolls and after reflows below the
     // story at the same window size, so it still describes the page as it was before a resize reflowed it: turning a
     // phone on its side reflows the text below the story by thousands of pixels, so neither scrollY nor the distance
-    // from the story's end holds.
+    // from the story's end holds. The browser's own scroll anchoring does not keep the place either: a phone's rotation
+    // anchor finds the fixed nav at the top of the window, and on a desktop the gutters and type sizes that follow the
+    // window width suppress anchoring.
+    const S0 = site();
     const nav = doc.querySelector("[data-nav]");
     const below = $$("main > section[id]", doc).filter((el) => story.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
     const navBottom = () => (nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0);
+    const readBlock = S0 && S0.readBlock ? S0.readBlock : () => null;
+    const blockTop = S0 && S0.blockTop ? S0.blockTop : () => null;
     function readPlace() {
       const line = window.innerHeight * 0.4;
       let sec = null;
@@ -470,19 +585,27 @@
       if (!sec) return null;
       const r = sec.getBoundingClientRect();
       const nb = navBottom();
-      return { anchorId: sec.id, frac: (nb - r.top) / Math.max(1, r.height), k: (r.top - nb) / Math.max(1, line - nb) };
+      const frac = (nb - r.top) / Math.max(1, r.height);
+      return { anchorId: sec.id, frac, k: (r.top - nb) / Math.max(1, line - nb), block: readBlock(doc.body, nb) };
     }
-    // Bring that section back: the same share of it at the nav's bottom edge, or a top that was lower down at the same
-    // place between that edge and the 40% line. Then again on each of the next two frames, since content-visibility
-    // sections near it take their real height only once they render.
-    function restorePlace(p, again = 2) {
+    // Bring that place back: the block at the same distance from the nav's bottom edge (site.js blockTop()) or, with no
+    // box for it, the same share of the section at that edge, or a top that was lower down at the same place between
+    // that edge and the 40% line. Then again on each of the next two frames, since content-visibility sections near it
+    // take their real height only once they render, and then done().
+    function restorePlace(p, again = 2, done) {
       const sec = doc.getElementById(p.anchorId);
       if (!sec) return;
-      const r = sec.getBoundingClientRect();
       const nb = navBottom();
-      const top = p.frac >= 0 ? nb - p.frac * r.height : nb + p.k * Math.max(1, window.innerHeight * 0.4 - nb);
-      if (Math.abs(r.top - top) >= 1) window.scrollBy(0, r.top - top);
-      if (again) requestAnimationFrame(() => restorePlace(p, again - 1));
+      const bt = blockTop(p.block);
+      let d;
+      if (bt != null) d = bt - nb;
+      else {
+        const r = sec.getBoundingClientRect();
+        d = r.top - (p.frac >= 0 ? nb - p.frac * r.height : nb + p.k * Math.max(1, window.innerHeight * 0.4 - nb));
+      }
+      if (Math.abs(d) >= 1) window.scrollBy(0, d);
+      if (again) requestAnimationFrame(() => restorePlace(p, again - 1, done));
+      else if (done) done();
     }
 
     function init() {
@@ -494,17 +617,20 @@
       const prev = api && api.state ? api.state() : null;
       const onHero = Boolean(prev && prev.u != null && prev.u < 0.4);
       const prevStep = prev && prev.inStory && !onHero ? prev.step : 0;
-      // One below the story gets the section they were in back at the top (the motion story is 7 stage heights tall and
-      // the static one much shorter, so the same scrollY would land several screens further on). Just under the story's
-      // end, before any section has reached the 40% line, they keep their distance from that end instead. Both wait one
-      // more frame, for the static hero's first draw, which places the well and can change the hero's height.
+      // One below the story gets the block they were on back under the nav (the motion story is 7 stage heights tall and
+      // the static one much shorter, so the same scrollY would land several screens further on), and the new mode keeps
+      // that place as theirs until they scroll, so turning the phone back brings back the same block. Just under the
+      // story's end, before any section has reached the 40% line, they keep their distance from that end instead. Both
+      // wait one more frame, for the static hero's first draw, which places the well and can change the hero's height.
       const place = prev && !prev.inStory ? prev.place : null;
       const belowBy = !place && prev && !prev.inStory && prev.belowBy != null ? prev.belowBy : null;
       if (api) api.destroy();
       mode = next;
       api = next === "motion" ? Motion() : Static();
+      const made = api;
       if (prevStep) requestAnimationFrame(() => api.goto(HOLD[prevStep], null, true));
-      else if (place) requestAnimationFrame(() => requestAnimationFrame(() => restorePlace(place)));
+      else if (place)
+        requestAnimationFrame(() => requestAnimationFrame(() => restorePlace(place, 2, () => api === made && made.hold(place))));
       else if (belowBy != null)
         requestAnimationFrame(() =>
           requestAnimationFrame(() => window.scrollTo(0, story.getBoundingClientRect().bottom + window.scrollY + belowBy))
@@ -540,13 +666,22 @@
       let readW = 0;
       let readH = 0;
       // readPlace() after the same scrolls (and after reflows below the story), read in the next frame; null while the
-      // middle of the window is still in the story
+      // middle of the window is still in the story. After a restore (hold()) it stays the place that was restored until
+      // the reader scrolls from keptY, so turning a phone back brings back the same block.
       let place = null;
       let placeRaf = 0;
+      let keptY = -1;
       const sameWindow = () => window.innerWidth === readW && Math.abs(window.innerHeight - readH) < 120;
       const notePlace = () => {
         placeRaf = 0;
-        if (alive && sameWindow()) place = storyBottom - window.scrollY < window.innerHeight * 0.5 ? readPlace() : null;
+        if (!alive || !sameWindow() || window.scrollY === keptY) return;
+        keptY = -1;
+        place = storyBottom - window.scrollY < window.innerHeight * 0.5 ? readPlace() : null;
+      };
+      const hold = (p) => {
+        if (!alive || !sameWindow()) return;
+        place = p;
+        readY = keptY = window.scrollY;
       };
       const noteScroll = () => {
         if (!sameWindow()) return;
@@ -578,7 +713,9 @@
       let hiSector = -1;
       let hiShown = -1;
       let hiK = 0;
-      const domState = { heroO: -1, heroY: -1, heroInert: null, wellO: 1, stepO: -1, bodyO: 1, stepT: -1, active: -1 };
+      const domState = { heroO: -1, heroY: -1, heroInert: null, wellO: 1, stepO: -1, bodyO: 1, titleO: -1, shown: null, active: -1, hi: -1 };
+      const legend = $(".legend", stepper);
+      const legendRows = legend ? $$("li", legend) : [];
 
       // The WebGL sheet and its textures. The sheet (a WebGL context, a probe and two shader programs) is made late:
       // in the first idle callback after the first paint, or when the reader reaches u 2.6, whichever comes first.
@@ -591,7 +728,7 @@
       let rostW = { x: 0, y: 0 };
       let packetScale = 0.2;
       let glBox = { left: 0, top: 0 };
-      const sheetState = { t1: 0, t2: 0, write: 0, rx: 0, ry: 0, rz: 0, tx: 0, ty: 0, tz: 0, lift: 0, alpha: 0, scale: 1, shadow: 1 };
+      const sheetState = { t1: 0, t2: 0, write: 0, rx: 0, ry: 0, rz: 0, tx: 0, ty: 0, tz: 0, lift: 0, alpha: 0, scale: 1, shadow: 1, lab: [1, 1, 1, 1, 1, 1] };
       // false until the sheet is made, and while the WebGL context is lost, so the 2D fallback sheet stands in
       const glOk = () => sheet && !sheet.failed && !sheet.lost;
       // inFrame: called from frame(), which draws straight after, so no extra wake
@@ -707,11 +844,14 @@
           top = nav + 18;
           // The bottom panel starts at 64% of the stage, or higher when its tallest step (step 3 and its legend) needs the
           // room, since the stage clips; the formation box ends 2% of the stage above the panel. On taller screens (760px
-          // and up) that step keeps at least 40px clear of the bottom edge.
+          // and up) that step keeps at least 40px clear of the bottom edge. On tall stages (tablets in portrait) the panel
+          // starts lower, so that step ends no more than 48px above the edge: at 64% it left a quarter of the screen blank
+          // under step 5 before the Preamble (256px at 768x1024), and the formations take the room instead.
           const ps = getComputedStyle(stepper);
           const stepH = Math.max(...steps.map((el) => el.offsetHeight));
           const padB = Math.max(parseFloat(ps.paddingBottom), H >= 760 ? 40 : 0);
-          stepTop = Math.min(H * 0.64, H - parseFloat(ps.paddingTop) - padB - stepH);
+          const room = H - parseFloat(ps.paddingTop) - stepH; // the panel's top with that step at the bottom edge
+          stepTop = Math.min(Math.max(H * 0.64, room - 48), room - padB);
           box = { x: gutter, y: 80, w: W - 2 * gutter, h: stepTop - H * 0.02 - 80 };
         }
         // Keep the hero copy inside the stage: shrink the chamber if the text needs the room.
@@ -785,16 +925,21 @@
           });
       };
 
-      /* Wide: when the stepper may show. Step 1's titles fade in once the chamber's left wing, gliding out of the hero
-         (leg 1), has cleared them, but not before 0.38, as the hero copy fades out (0.30 to 0.40), so the two cross-fade
-         where the wing allows it; step 1's body waits until the wing has cleared its lines too, and not before 0.48.
+      /* Wide: when the stepper may show. Its column (the step numbers and step 1's capsule, on the nav's left line, which the
+         wing never reaches) fades in from numStart, 0.38 wherever the wing allows, as the hero copy fades out (0.30 to
+         0.40), so the two cross-fade. The titles fade in once the chamber's left wing, gliding out of the hero (leg 1), has
+         cleared them, but not before 0.38; step 1's body waits until the wing has cleared its lines too, and not before 0.48.
          Measured once per layout, with step 1 active and the stepper at rest; the seats' leg 1 paths are straight lines. */
+      let numStart = 0.372;
       let stepStart = 0.372;
       let bodyStart = 1;
       let exitU = SPAN + 0.1;
+      // the unpin glide (wide), on the stepper's exit clock: from exitA (when the stepper starts to fade) over 0.22
+      let exitA = SPAN - 0.05;
+      let exitB = SPAN + 0.17;
       function clearTimes() {
         if (!geo.wide) {
-          stepStart = 0.372;
+          numStart = stepStart = 0.372;
           bodyStart = 0;
           return;
         }
@@ -814,6 +959,8 @@
         const titles = steps.map((el) => textBox($(".step-title", el)));
         // one box per title row: from the active capsule (19px left of the numbers) to the end of its text
         const titleBoxes = heads.map((hr, k) => ({ x0: sr.left - 19 - pr.left, x1: titles[k].right - pr.left, y0: hr.top - pr.top, y1: hr.bottom - pr.top }));
+        // and one per number: from the capsule to the end of the 34px number column
+        const numBoxes = steps.map((el, k) => ({ ...titleBoxes[k], x1: $(".step-n", el).getBoundingClientRect().right - pr.left }));
         const b = stepBodies[0] ? textBox(stepBodies[0]) : null;
         const bodyBoxes = b && b.width ? [{ x0: b.left - pr.left, x1: b.right - pr.left, y0: b.top - pr.top, y1: b.bottom - pr.top }] : [];
         stepper.style.transform = tf;
@@ -838,8 +985,10 @@
           }
           return 0.62;
         };
+        numStart = clearAt(numBoxes, 0.38);
         stepStart = clearAt(titleBoxes, 0.38);
         bodyStart = clearAt(bodyBoxes, Math.max(0.48, stepStart));
+        geo.numStart = numStart;
         geo.stepStart = stepStart;
         geo.bodyStart = bodyStart;
       }
@@ -848,6 +997,7 @@
         if (!alive) return;
         // where the reader is in the story before the stage height changes, so a height resize keeps their place
         const prevH = H;
+        const prevW = W;
         const y0 = readW ? readY : window.scrollY;
         const rawU = prevH ? (y0 - storyTop) / prevH : NaN;
         const prevBottom = storyBottom;
@@ -902,12 +1052,16 @@
         // of the window; the wide stepper is faded out by then (updateDom)
         const firstRow = below[0] && (below[0].querySelector(".row") || below[0]);
         exitU = firstRow ? (firstRow.getBoundingClientRect().top + window.scrollY - window.innerHeight - storyTop) / H : SPAN + 0.1;
+        exitA = Math.max(SPAN - 0.05, Math.max(SPAN, exitU) - 0.1);
+        exitB = exitA + 0.22;
         if (prevH && H !== prevH && rawU > 0 && rawU < SPAN) window.scrollTo(0, scrollFor(rawU));
         // a reader past the pin keeps their place under the story, which is 7 stage heights tall and so moved everything
-        // below it by 7 times the change: the section they were in comes back (the text below may have reflowed too, a
-        // tablet turned on its side), or, just past the story's end, their distance from that end
-        else if (prevH && H !== prevH && rawU >= SPAN && prevBottom) {
-          if (place) restorePlace(place);
+        // below it by 7 times a height change: the block they were on comes back (the text below reflows too, with any
+        // change of width: a tablet turned on its side, a desktop window made narrower), or, just past the story's end,
+        // their distance from that end
+        else if (prevH && (H !== prevH || W !== prevW) && rawU >= SPAN && prevBottom) {
+          const p = place;
+          if (p) restorePlace(p, 2, () => hold(p));
           else window.scrollTo(0, y0 + storyBottom - prevBottom);
         }
         readW = window.innerWidth;
@@ -922,7 +1076,8 @@
         wake();
       }
 
-      const target = () => clamp((window.scrollY - storyTop) / Math.max(1, H), 0, SPAN);
+      // u runs on past the pin by up to 0.3, for the unpin glide (wide), which plays while the section scrolls away
+      const target = () => clamp((window.scrollY - storyTop) / Math.max(1, H), 0, SPAN + 0.3);
       // Is the middle of the window inside the story? From the last layout's storyTop and H, so it still answers
       // for the page as it was when a resize has reflowed it but layout() has not run yet.
       const inStory = () => {
@@ -950,6 +1105,7 @@
         if (u < 4.3) return { A: F[3], B: F[4], tr: T.page, m: (u - 3.6) / 0.7, toPage: true };
         if (u < 5.4) return { A: F[4], B: F[4], tr: null, m: 0, page: true };
         if (u < 5.85) return { A: glOk() ? V.v5 : V.v5f, B: F[5], tr: T.fill, m: (u - 5.4) / 0.45, fill: true };
+        if (wide && u > exitA) return { A: F[5], B: V.vX, tr: T.exit, m: clamp((u - exitA) / (exitB - exitA)), exit: true };
         return { A: F[5], B: F[5], tr: null, m: 0 };
       }
 
@@ -996,25 +1152,40 @@
         return { x, y, kx, ky, p, a };
       }
 
-      // Where the packet is on screen (stage px), so the ghost seats behind it stay hidden: { x0, y0, x1, y1, a }.
-      function packetRect(u, flat) {
+      // Where the packet is on screen, so the ghost seats under it stay hidden (they are drawn on the 2D canvas, which lies
+      // over the WebGL one): { edges, a }, the packet's outline in stage px as edges [x, y, nx, ny] with inward unit normals,
+      // and its opacity. With WebGL the outline is the folded sheet's own box, projected as paper.js draws it.
+      function packetOutline(u, flat) {
         if (u < 5.18 || u > 5.5) return null;
+        let pts;
+        let a;
         if (glOk()) {
           if (!sheet.ready || !lay) return null;
           computeSheet(u);
-          const S = sheetState;
-          const ppw = sheet.pxPerWorld();
-          const x = glBox.left + glBox.w / 2 + (lay.x + S.tx) * ppw;
-          const y = glBox.top + glBox.h / 2 - (lay.y + S.ty) * ppw;
-          const w = sheet.rect.w * S.scale * 1.01;
-          const h = ((w * LH) / LW / 3) * Math.cos(S.rx);
-          const hw = w / 2 + Math.abs(Math.sin(S.rz)) * h * 0.5 + 4;
-          const hh = h / 2 + Math.abs(Math.sin(S.rz)) * w * 0.5 + 4;
-          return { x0: x - hw, x1: x + hw, y0: y - hh, y1: y + hh, a: S.alpha };
+          pts = sheet.footprint(sheetState).map((p) => [glBox.left + p[0], glBox.top + p[1]]);
+          a = sheetState.alpha;
+        } else {
+          if (!flat) return null;
+          const S = model.over.sheet;
+          const x1 = flat.x + S.w * flat.kx;
+          const y1 = flat.y + S.h * flat.ky;
+          pts = [[flat.x, flat.y], [x1, flat.y], [x1, y1], [flat.x, y1]];
+          a = flat.a;
         }
-        if (!flat) return null;
-        const S = model.over.sheet;
-        return { x0: flat.x - 3, y0: flat.y - 3, x1: flat.x + S.w * flat.kx + 3, y1: flat.y + S.h * flat.ky + 3, a: flat.a };
+        const edges = pts.map((p, j) => {
+          const q = pts[(j + 1) % pts.length];
+          const len = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1;
+          return [p[0], p[1], -(q[1] - p[1]) / len, (q[0] - p[0]) / len];
+        });
+        return { edges, a };
+      }
+      // Is (x, y) within m px of the packet's outline, or inside it?
+      function underPacket(P, x, y, m) {
+        for (let j = 0; j < P.edges.length; j++) {
+          const E = P.edges[j];
+          if ((x - E[0]) * E[2] + (y - E[1]) * E[3] < -m) return false;
+        }
+        return true;
       }
       function drawGhost(ctx, g, alpha, P) {
         const col = palette.str[C.faint];
@@ -1023,7 +1194,8 @@
         for (let i = 0; i < g.n; i++) {
           const x = g.x[i];
           const y = g.y[i];
-          const a = P && x > P.x0 && x < P.x1 && y > P.y0 && y < P.y1 ? alpha * (1 - P.a) : alpha;
+          // hidden whole under the packet: any seat that would show a part over it (its reach: half its width plus half its length)
+          const a = P && underPacket(P, x, y, (g.s[i] * (1 + g.e[i])) / 2 + 1) ? alpha * (1 - P.a) : alpha;
           if (a <= 0.003) continue;
           if (a !== lastA) {
             ctx.globalAlpha = a;
@@ -1096,6 +1268,13 @@
         const m = seg.m;
         const hold3 = seg.A === model.F[3] && seg.B === model.F[3];
         hiK += ((hiSector >= 0 && hold3 ? 1 : 0) - hiK) * (1 - Math.exp(-dt * 14));
+        // the legend row under the pointer lights with its sector: the other five rows dim with the other sectors (CSS, 200ms)
+        const hiRow = hiSector >= 0 && hold3 ? hiSector : -1;
+        if (hiRow !== domState.hi && legend) {
+          legend.classList.toggle("is-hi", hiRow >= 0);
+          legendRows.forEach((li, k) => li.classList.toggle("is-hi", k === hiRow));
+          domState.hi = hiRow;
+        }
 
         // weights
         const heroW = u < 0.3 ? 1 : u < 0.62 ? 1 - m : 0;
@@ -1109,8 +1288,12 @@
         drawRooms(ctx, o, smooth(1.9, 2.2, u) * (1 - smooth(2.5, 2.7, u)));
         let flat = null;
         if (!glOk() && u >= 3.6 && u <= 5.5) flat = drawFallbackPaper(ctx, u);
-        const ghostA = smooth(5.2, 5.45, u) * (palette.dark ? 0.8 : 0.5);
-        if (ghostA > 0.003) drawGhost(ctx, o.ghost, ghostA, packetRect(u, flat));
+        // the ghost chamber goes as the unpin glide starts, before the first seats have moved off it
+        // the "Oliy Majlis" name moves with the glide's middle seat (delay 0.5)
+        const exitSp = model.T.exit.spread;
+        const exitK = seg.exit ? easeIO(clamp((seg.m - exitSp / 2) / (1 - exitSp))) : 0;
+        const ghostA = smooth(5.2, 5.45, u) * (palette.dark ? 0.8 : 0.5) * (seg.exit ? 1 - smooth(0, 0.12, seg.m) : 1);
+        if (ghostA > 0.003) drawGhost(ctx, o.ghost, ghostA, packetOutline(u, flat));
 
         // pointer and ripples
         mouse.amt += (mouse.target * heroW - mouse.amt) * (1 - Math.exp(-dt * 6));
@@ -1124,8 +1307,10 @@
         for (let r = ripples.length - 1; r >= 0; r--) if (now - ripples[r].t > 1800) ripples.splice(r, 1);
 
         // the writing, 4.05 to 4.50: each seat melts about 0.1 after it lands (the landing wave runs 3.95 to 4.30, in the same
-        // reading order), so the finished page holds 4.50 to 4.80 before the sheet tilts
-        const writeU = lerp(-0.01, 1.01, clamp((u - 4.05) / 0.45));
+        // reading order), so the finished page holds 4.50 to 4.80 before the sheet tilts. The write time runs to 1.03 (as the
+        // shader's uWrite in paper.js): a seat has melted 0.025 after the pen passes it, and the last ones sit at about 0.998,
+        // so every seat is gone by about 4.497, before the hold
+        const writeU = lerp(-0.01, 1.03, clamp((u - 4.05) / 0.45));
         const tw = model.tw;
         const time = now / 1000;
         const kStretch = 1 - Math.exp(-dt * 22);
@@ -1133,6 +1318,14 @@
         let lastA = -1;
         let lastCol = "";
         const spread = tr ? tr.spread : 0;
+        // Dark mode: the light sheet arrives under the score chamber (opaque by about 3.63), where the seats' dark-theme rubric
+        // colours (pale cyan) wash out. So every seat takes the on-paper colour as it arrives, all on one clock: those over the
+        // sheet and those beside it alike, so no edge of the sheet ever cuts the chamber into two colours (by position, the
+        // wings were stencilled by hard vertical lines). The change runs while the fading-in sheet passes the seats'
+        // lightness (its opacity 0.45 to 0.75, about 3.605 to 3.611), since a half-way colour reads worse on the half-faded
+        // sheet than either end. (Light mode's rubric reads on the white sheet, and the 2D fallback's sheet is dark.)
+        // sheetIn() is the sheet's opacity (computeSheet).
+        const inkK = onPaperDark && seg.toPage && sheet.ready ? smooth(0.45, 0.75, sheetIn(u)) : 0;
         // the 2D fallback's packet opacity (0 once it has gone, at 5.50), for the seats still parked on it
         const packetA = flat ? flat.a : 0;
         ctx.lineCap = "round";
@@ -1154,8 +1347,11 @@
             const bx = Bf.x[i];
             const by = Bf.y[i];
             const b = tr.b[i];
-            const qx = (ax + bx) / 2 - (by - ay) * b;
-            const qy = (ay + by) / 2 + (bx - ax) * b;
+            // a seat marked to drop first (the page move's last section) bends through the point on its line straight
+            // below its start: down first, then along the line, under the label printed above it
+            const dr = tr.drop && tr.drop[i];
+            const qx = dr ? ax : (ax + bx) / 2 - (by - ay) * b;
+            const qy = dr ? by : (ay + by) / 2 + (bx - ax) * b;
             const u1 = 1 - e;
             tx = u1 * u1 * ax + 2 * u1 * e * qx + e * e * bx;
             ty = u1 * u1 * ay + 2 * u1 * e * qy + e * e * by;
@@ -1163,6 +1359,7 @@
             elong = lerp(A.e[i], Bf.e[i], e);
             orient = angLerp(A.o[i], Bf.o[i], e);
             ct = e;
+            if (inkK > ct) ct = inkK;
             // the writing starts while the last lines are still landing (4.05 to 4.30): a seat that has landed melts the same way
             if (seg.toPage && glOk() && writeU > tw[i] - 0.01) {
               a = 1 - smooth(tw[i] - 0.01, tw[i] + 0.025, writeU);
@@ -1189,7 +1386,7 @@
             if (seg.page) {
               if (glOk()) {
                 // seats to ink: each dot melts into the pen stroke written at its place
-                a = u >= 4.5 ? 0 : 1 - smooth(tw[i] - 0.01, tw[i] + 0.025, writeU);
+                a = 1 - smooth(tw[i] - 0.01, tw[i] + 0.025, writeU);
                 size *= 1 - 0.4 * (1 - a);
               } else if (flat) {
                 // no WebGL: the dots ride the flat sheet down to the rostrum
@@ -1264,7 +1461,7 @@
           }
           px[i] = tx;
           py[i] = ty;
-          const want = Math.min(size * (seg.fill ? 0.8 : 1.8), speed * 0.016);
+          const want = Math.min(size * (seg.fill || seg.exit ? 0.8 : 1.8), speed * 0.016);
           st[i] += (want - st[i]) * kStretch;
           if (a <= 0.003 || size <= 0.05) continue;
           const wv = clamp(st[i] / (size * 0.9));
@@ -1293,10 +1490,12 @@
 
         // the pen nib: a point of ink at the head of the writing, on the line being written (4.05 to 4.50). The shader inks
         // each bit over the 0.008 of write time after writeU reaches it, so the nib rides 0.004 behind writeU, at the half
-        // inked head, and waits at a line's end until its last letters are fully in.
+        // inked head, and waits at a line's end until its last letters are fully in; past the last line it stays at its end
+        // while it fades.
         if (glOk() && sheet.ready && u > 4.05 && u < 4.5) {
           const nibU = writeU - 0.004;
-          const L = model.lines.find((l) => nibU >= l.t0 && nibU < l.t1 + 0.004);
+          const end = model.lines[model.lines.length - 1];
+          const L = model.lines.find((l) => nibU >= l.t0 && nibU < l.t1 + 0.004) || (nibU >= end.t1 ? end : null);
           const nibA = 1 - smooth(4.46, 4.5, u);
           if (L && nibA > 0.01) {
             const S = o.sheet;
@@ -1315,7 +1514,7 @@
 
         // overlays over the dots
         drawLabels(ctx, o, smooth(3.1, 3.3, u) * (1 - smooth(3.42, 3.58, u)));
-        drawName(ctx, o, smooth(5.7, 5.85, u));
+        drawName(ctx, o, smooth(5.7, 5.85, u), exitK);
 
         drawSheet(u);
         updateDom(u);
@@ -1353,7 +1552,8 @@
         const key =
           Math.round(S.alpha * 1e4) + "," + Math.round(S.write * 1e4) + "," + Math.round(S.lift * 1e4) + "," + Math.round(S.scale * 1e4) + "," +
           Math.round(S.rx * 1e4) + "," + Math.round(S.rz * 1e4) + "," + Math.round(S.t1 * 1e4) + "," + Math.round(S.t2 * 1e4) + "," +
-          Math.round(S.shadow * 1e4) + "," + Math.round(S.tx * 1e4) + "," + Math.round(S.ty * 1e4);
+          Math.round(S.shadow * 1e4) + "," + Math.round(S.tx * 1e4) + "," + Math.round(S.ty * 1e4) + "," +
+          S.lab.map((v) => Math.round(v * 1e3)).join(",");
         if (key === glKey) return;
         glKey = key;
         sheet.set(S);
@@ -1361,20 +1561,26 @@
         glClear = S.alpha <= 0.002;
       }
 
+      // The sheet's arrival (its opacity, lift and scale): 3.60 to 3.75, or in dark mode 3.60 to 3.63, so the half-faded light
+      // sheet on the dark ground (a flat grey card, the seats on it at their lowest contrast) passes in a few pixels: its
+      // opacity is past 0.75 by about 3.611, and its scale and lift land with it.
+      const ARRIVE_DARK = 0.03;
+      const sheetArr = (u) => easeOut(clamp((u - 3.6) / (palette.dark ? ARRIVE_DARK : 0.15)));
+      const sheetIn = sheetArr;
       // The sheet's state at u (5.3 to 5.5): arrive, write, tilt, fold, fly into the rostrum.
       let computedFor = -1;
       function computeSheet(u) {
         if (u === computedFor) return;
         computedFor = u;
         const S = sheetState;
-        const arr = easeOut(clamp((u - 3.6) / 0.15));
+        const arr = sheetArr(u);
         const tilt = easeIO(clamp((u - 4.8) / 0.12));
         // the flight: 5.18 to 5.50, with the packet at its final size in the well by 5.45; it fades over 5.42 to 5.50
         const fl = clamp((u - 5.18) / 0.32);
         const pe = easeIO(clamp((u - 5.18) / 0.28));
         const sf = clamp((u - 5.18) / 0.27);
         const se = sf * sf * (0.6 + 0.4 * sf);
-        S.alpha = arr * (1 - clamp((u - 5.42) / 0.08));
+        S.alpha = sheetIn(u) * (1 - clamp((u - 5.42) / 0.08));
         S.write = clamp((u - 4.05) / 0.45);
         S.lift = lerp(0.05, 0, arr) + 0.02 * tilt;
         S.scale = lerp(0.96, 1, arr) * lerp(1, packetScale, se);
@@ -1385,6 +1591,9 @@
         S.t1 = Math.PI * easeIO(clamp((u - 4.88) / 0.18));
         S.t2 = Math.PI * easeIO(clamp((u - 5.02) / 0.18));
         S.shadow = 1 - clamp((u - 5.18) / 0.12);
+        // each printed label stays faint until the seats over it have left (printClears)
+        const clears = printClears(model);
+        for (let k = 0; k < S.lab.length; k++) S.lab[k] = labA(clears[k], u);
         S.tx = lay ? (rostW.x - lay.x) * pe : 0;
         S.ty = lay ? (rostW.y - lay.y) * pe + Math.sin(Math.PI * fl) * 0.1 : 0;
         S.tz = 0;
@@ -1395,7 +1604,9 @@
       function activeStep(u) {
         if (u < 1.8) return 0;
         if (u < 2.9) return 1;
-        if (u < 3.95) return 2;
+        // dark mode with WebGL: the seats turn to the on-paper colour as the sheet arrives, by about 3.611 (inkK in frame()),
+        // so step 4 takes over there, and step 3's rubric legend never sits beside seats it no longer describes
+        if (u < (onPaperDark ? 3.61 : 3.95)) return 2;
         if (u < 5.18) return 3;
         return 4;
       }
@@ -1426,19 +1637,29 @@
           ds.heroInert = inert;
           if (navReg) navReg.classList.toggle("is-hero-quiet", !inert);
         }
-        // stepper: from stepStart over 0.2 (wide: 0.38 where the chamber's left wing allows, so the titles cross-fade with
-        // the hero copy; later on screens where the wing is still passing; narrow: 0.372). It takes taps and clicks only once
-        // it is more than half shown.
+        // stepper: from numStart over 0.2 (wide: 0.38 where the chamber's left wing allows, so its column cross-fades with
+        // the hero copy; narrow: 0.372). Wide, the titles have their own clock from stepStart (0.38, or later on screens where
+        // the wing is still passing them), so the numbers carry that beat. The titles sit inside the column, so --title-o is
+        // their clock over the column's entry opacity: the reader sees the titles' own clock (times the exit fade), where a
+        // plain product squared it (7% at 0.40 where both start at 0.38). It takes taps and clicks only once its titles are
+        // more than half shown.
         // wide, on the way out: the stepper (on the nav's left line) fades over the 0.1 before the Preamble (on the document
         // grid) comes up, and never before 5.95, after step 5's hold, so the two left lines never share the screen
         let xo = 1;
-        if (wide && u >= SPAN - 0.1) {
-          const x1 = Math.max(SPAN, exitU);
-          xo = 1 - smooth(Math.max(SPAN - 0.05, x1 - 0.1), x1, (window.scrollY - storyTop) / Math.max(1, H));
+        if (wide && u >= SPAN - 0.1) xo = 1 - smooth(exitA, Math.max(SPAN, exitU), (window.scrollY - storyTop) / Math.max(1, H));
+        const no = easeOut(clamp((u - numStart) / 0.2));
+        const so = no * xo;
+        const to = wide ? Math.min(1, easeOut(clamp((u - stepStart) / 0.2)) / Math.max(no, 1e-3)) : 1;
+        if (Math.abs(to - ds.titleO) > 0.002 || ends(to, ds.titleO)) {
+          stepper.style.setProperty("--title-o", to.toFixed(3));
+          ds.titleO = to;
         }
-        const so = easeOut(clamp((u - stepStart) / 0.2)) * xo;
+        const shown = so * to > 0.5;
+        if (shown !== ds.shown) {
+          stepper.classList.toggle("is-shown", shown);
+          ds.shown = shown;
+        }
         if (Math.abs(so - ds.stepO) > 0.002 || ends(so, ds.stepO)) {
-          stepper.classList.toggle("is-shown", so > 0.5);
           stepper.style.opacity = so.toFixed(3);
           stepper.style.transform = wide
             ? "translate3d(" + (-12 * (1 - so)).toFixed(2) + "px,0,0)"
@@ -1525,6 +1746,7 @@
           s0.onTheme(() => {
             if (glOk()) sheet.setTheme(palette.dark, palette.sheetTint);
             glKey = "";
+            computedFor = -1; // the sheet's arrival opacity follows the theme (sheetIn)
             primed = false;
             wake();
           })
@@ -1602,6 +1824,7 @@
         goto,
         scrollFor,
         layout,
+        hold,
         state: () => ({
           u: uS,
           target: target(),
@@ -1648,7 +1871,10 @@
           if (navReg) navReg.classList.remove("is-hero-quiet");
           stepper.style.opacity = "";
           stepper.style.transform = "";
+          stepper.style.removeProperty("--title-o");
           stepper.classList.remove("is-shown");
+          if (legend) legend.classList.remove("is-hi");
+          legendRows.forEach((li) => li.classList.remove("is-hi"));
           stepBodies.forEach((b) => {
             if (!b) return;
             b.style.pointerEvents = "";
@@ -1677,37 +1903,41 @@
       const stops = [];
       let alive = true;
 
-      // Where the reader is, refreshed after each scroll, so init() can read it after a resize has reflowed the rows.
+      // Where the reader is, refreshed after each scroll and each reflow at the window size it was read at, so init() can
+      // read it after the resize that brought it here has reflowed the page.
       // step: the last row whose top has reached 40% of the window height (0 above the first row).
-      // place: the section the reader is in below the story (readPlace()), or null.
+      // place: the section and block the reader is on below the story (readPlace()), or null; after a restore it stays
+      // the place that was restored until the reader scrolls (kept), so turning the phone back brings back the same block.
       // belowBy: the scrollY past the story's end (negative while the story's end is still below the window's top).
       const seen = { step: 0, inStory: false, place: null, belowBy: null };
-      let lookRaf = 0;
-      const look = () => {
-        lookRaf = 0;
+      const look = (kept) => {
         const h = window.innerHeight;
         const sr = story.getBoundingClientRect();
         seen.inStory = sr.top < h * 0.5 && sr.bottom > h * 0.5;
-        seen.place = sr.bottom < h * 0.5 ? readPlace() : null;
+        if (!kept) seen.place = sr.bottom < h * 0.5 ? readPlace() : null;
         seen.belowBy = -sr.bottom;
         seen.step = 0;
         steps.forEach((row, j) => {
           if (row.getBoundingClientRect().top <= h * 0.4) seen.step = j + 1;
         });
       };
-      const onScroll = () => {
-        if (!lookRaf) lookRaf = requestAnimationFrame(look);
+      // A resize that keeps the static story (a phone turned on its side, with reduced motion or too short for the pinned
+      // story) brings the reader's block back under the nav: site.js keepPlace(), which also calls look() after each of
+      // its reads. A switch to the pinned story brings the reader back itself (destroy() stops the keeper first).
+      const keep = S0 && S0.keepPlace ? S0.keepPlace(look) : null;
+      if (keep) stops.push(keep.stop);
+      else {
+        const onScroll = () => look(false);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        stops.push(() => window.removeEventListener("scroll", onScroll));
+        look(false);
+      }
+      // after a switch of modes has restored place p
+      const hold = (p) => {
+        if (!keep || !keep.same()) return;
+        keep.hold(p.block);
+        seen.place = p;
       };
-      window.addEventListener("scroll", onScroll, { passive: true });
-      // and after a reflow below the story (a section that renders as it nears the view, a picture that loads)
-      const roBelow = window.ResizeObserver ? new ResizeObserver(onScroll) : null;
-      if (roBelow) below.forEach((el) => roBelow.observe(el));
-      stops.push(() => {
-        window.removeEventListener("scroll", onScroll);
-        if (roBelow) roBelow.disconnect();
-        cancelAnimationFrame(lookRaf);
-      });
-      look();
 
       // The nav's Register button stays quiet while the hero's actions are in view.
       if (navReg && window.IntersectionObserver) {
@@ -1839,6 +2069,7 @@
         goto,
         scrollFor: () => 0,
         layout() {},
+        hold,
         state: () => ({ mode: "static", gl: Boolean(sheet4 && !sheet4.failed), step: seen.step, inStory: seen.inStory, place: seen.place, belowBy: seen.belowBy }),
         destroy() {
           alive = false;

@@ -437,11 +437,25 @@
     "uniform sampler2D uFront; uniform sampler2D uBack; uniform sampler2D uInfo;",
     "uniform float uWrite, uAlpha, uT1, uT2, uYA, uYB, uL3;",
     "uniform vec3 uLight, uInk, uTint;",
+    "uniform vec4 uLabA; uniform vec2 uLabB;",
     "varying vec2 vUv; varying vec3 vN; varying float vPy; varying float vLy; varying float vCr;",
     "void main(){",
     "  vec3 n = normalize(vN); vec3 col;",
     "  if (gl_FrontFacing) {",
     "    col = texture2D(uFront, vUv).rgb;",
+    // the printed labels (story.js PRINT_LABELS, in logical units): each fades toward the paper, by how much print the texel
+    // holds, until the seats standing over it have left; the ruled lines and the footer always show
+    "    float lx = vUv.x * 1024.0; float ly = vUv.y * 1448.0; float la = 1.0;",
+    "    if (ly > 88.0 && ly < 152.0) la = uLabA.x;",
+    "    else if (lx < 152.0 && ((ly > 205.0 && ly < 240.0) || (ly > 283.0 && ly < 318.0) || (ly > 361.0 && ly < 396.0))) la = uLabA.y;",
+    "    else if (lx > 510.0 && lx < 585.0 && ly > 283.0 && ly < 318.0) la = uLabA.z;",
+    "    else if (ly > 458.0 && ly < 500.0 && lx < 600.0) la = uLabA.w;",
+    "    else if (ly > 822.0 && ly < 864.0 && lx < 600.0) la = uLabB.x;",
+    "    else if (ly > 1078.0 && ly < 1120.0 && lx < 700.0) la = uLabB.y;",
+    "    if (la < 0.999) {",
+    "      vec3 paper = mix(vec3(0.994, 0.994, 0.99), vec3(0.966, 0.968, 0.968), (vUv.x + vUv.y) * 0.5);",
+    "      col = mix(col, paper, (1.0 - la) * smoothstep(0.975, 0.8, dot(col, vec3(0.3333))));",
+    "    }",
     "    col *= mix(vec3(1.0), uTint, dot(col, vec3(0.3333)));", // the tint takes the paper, not the dark print
     "    vec4 info = texture2D(uInfo, vUv);",
     "    float ink = info.r * (1.0 - smoothstep(uWrite - 0.008, uWrite, info.g));",
@@ -511,7 +525,7 @@
      sheet.rect = { cx, cy, w } in canvas CSS px: where the flat sheet sits (see layoutFromRect). */
   function Sheet(canvas) {
     this.canvas = canvas;
-    this.st = { t1: 0, t2: 0, write: 0, rx: 0, ry: 0, rz: 0, tx: 0, ty: 0, tz: 0, lift: 0, alpha: 1, scale: 1, shadow: 1 };
+    this.st = { t1: 0, t2: 0, write: 0, rx: 0, ry: 0, rz: 0, tx: 0, ty: 0, tz: 0, lift: 0, alpha: 1, scale: 1, shadow: 1, lab: [1, 1, 1, 1, 1, 1] };
     this.dark = false;
     this.tint = [1, 1, 1];
     this.cw = 0; this.ch = 0;
@@ -541,7 +555,7 @@
       this.sp = prog(SVS, SFS);
     } catch (e) { this.failed = true; if (window.console) console.warn("paper: shader", e); return; }
     var p = this.p, sp = this.sp, u = {}, su = {};
-    ["uPV", "uM", "uN", "uT1", "uT2", "uR1", "uR2", "uYA", "uYB", "uH", "uFront", "uBack", "uInfo", "uWrite", "uTint", "uAlpha", "uL3", "uLight", "uInk"]
+    ["uPV", "uM", "uN", "uT1", "uT2", "uR1", "uR2", "uYA", "uYB", "uH", "uFront", "uBack", "uInfo", "uWrite", "uTint", "uAlpha", "uL3", "uLight", "uInk", "uLabA", "uLabB"]
       .forEach(function (n) { u[n] = gl.getUniformLocation(p, n); });
     ["uPV", "uM", "uRect", "uPad", "uBlur", "uStrength", "uCol"].forEach(function (n) { su[n] = gl.getUniformLocation(sp, n); });
     this.u = u; this.su = su;
@@ -649,20 +663,67 @@
     return { w: w, h: h };
   };
 
+  // The camera (PV), rotation (R) and model (M) matrices, scale and layout of the sheet in state st; draw() and
+  // footprint() share them.
+  Sheet.prototype.matrices = function (st) {
+    var lay = this.layoutFromRect(this.rect), s = lay.s * st.scale;
+    var R = mul(RZ(st.rz), mul(RY(st.ry), RX(st.rx)));
+    return {
+      PV: mul(P(FOV, (this.cw || 1) / (this.ch || 1), 0.5, 40), T(0, 0, -CAM)),
+      R: R,
+      M: mul(T(lay.x + st.tx, lay.y + st.ty, st.tz + st.lift), mul(R, S(s))),
+      s: s,
+      lay: lay
+    };
+  };
+
+  /* Where the sheet is on the canvas in state st (its own state when left out): the box that holds its folded shape,
+     creases and flaps included (from the vertex shader), projected as the draw projects it. Returns that box's outline as
+     a convex polygon of [x, y] points in canvas CSS px, for hiding 2D drawing that the sheet covers. */
+  Sheet.prototype.footprint = function (st) {
+    st = st || this.st;
+    var mx = this.matrices(st), PVM = mul(mx.PV, mx.M), cw = this.cw || 1, ch = this.ch || 1;
+    var y0 = YA, y1 = YB, z1 = 0;
+    // each flap: the crease's bulge and the flap's far edge, as y, and the highest z it reaches
+    [[st.t1, R1, YA, -1], [st.t2, R2, YB, 1]].forEach(function (f) {
+      var th = f[0], r = f[1], c = f[2], sg = f[3], ex = Math.max(0, L3 - th * r);
+      [c + sg * r * Math.sin(Math.min(th, Math.PI / 2)), c + sg * (r * Math.sin(th) + ex * Math.cos(th))].forEach(function (y) {
+        y0 = Math.min(y0, y);
+        y1 = Math.max(y1, y);
+      });
+      z1 = Math.max(z1, r - r * Math.cos(th) + Math.max(0, ex * Math.sin(th)));
+    });
+    var pts = [];
+    [-0.5, 0.5].forEach(function (x) {
+      [y0, y1].forEach(function (y) {
+        [0, z1].forEach(function (z) {
+          var o = [0, 0, 0, 0], v = [x, y, z, 1];
+          for (var r = 0; r < 4; r++) for (var k = 0; k < 4; k++) o[r] += PVM[k * 4 + r] * v[k];
+          pts.push([(o[0] / o[3] + 1) / 2 * cw, (1 - o[1] / o[3]) / 2 * ch]);
+        });
+      });
+    });
+    return hull(pts);
+  };
+  // Convex hull (monotone chain). For a point p inside, cross(a, b, p) >= 0 along every edge a to b.
+  function hull(p) {
+    var cross = function (o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); };
+    var lo = [], up = [], i;
+    p.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    for (i = 0; i < p.length; i++) { while (lo.length > 1 && cross(lo[lo.length - 2], lo[lo.length - 1], p[i]) <= 0) lo.pop(); lo.push(p[i]); }
+    for (i = p.length - 1; i >= 0; i--) { while (up.length > 1 && cross(up[up.length - 2], up[up.length - 1], p[i]) <= 0) up.pop(); up.push(p[i]); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+
   Sheet.prototype.draw = function () {
     if (this.failed || !this.ready || this.lost) return;
     var gl = this.gl, st = this.st, u = this.u, su = this.su;
     var sz = this.size();
-    var asp = (this.cw || 1) / (this.ch || 1);
-    var lay = this.layoutFromRect(this.rect);
     gl.viewport(0, 0, sz.w, sz.h);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if (st.alpha <= 0.002) return;
-    var PV = mul(P(FOV, asp, 0.5, 40), T(0, 0, -CAM));
-    var s = lay.s * st.scale;
-    var R = mul(RZ(st.rz), mul(RY(st.ry), RX(st.rx)));
-    var M = mul(T(lay.x + st.tx, lay.y + st.ty, st.tz + st.lift), mul(R, S(s)));
+    var mx = this.matrices(st), PV = mx.PV, R = mx.R, M = mx.M, s = mx.s, lay = mx.lay;
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -707,9 +768,15 @@
     gl.uniform1f(u.uT1, st.t1); gl.uniform1f(u.uT2, st.t2);
     gl.uniform1f(u.uR1, R1); gl.uniform1f(u.uR2, R2);
     gl.uniform1f(u.uYA, YA); gl.uniform1f(u.uYB, YB); gl.uniform1f(u.uH, H); gl.uniform1f(u.uL3, L3);
-    gl.uniform1f(u.uWrite, lerp(-0.01, 1.01, st.write));
+    // the pen's write time: -0.01 to 1.03 (story.js writeU), so the seats that melt into the last letters (each 0.025
+    // after the pen passes it) are gone before the written page holds
+    gl.uniform1f(u.uWrite, lerp(-0.01, 1.03, st.write));
     gl.uniform3f(u.uTint, this.tint[0], this.tint[1], this.tint[2]);
     gl.uniform1f(u.uAlpha, st.alpha);
+    // the printed labels' strength (story.js printClears): 1 except while seats stand over them
+    var lab = st.lab || [1, 1, 1, 1, 1, 1];
+    gl.uniform4f(u.uLabA, lab[0], lab[1], lab[2], lab[3]);
+    gl.uniform2f(u.uLabB, lab[4], lab[5]);
     gl.uniform3f(u.uLight, -0.35, 0.55, 0.9);
     gl.uniform3f(u.uInk, 0.12, 0.235, 0.455);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.tex.front); gl.uniform1i(u.uFront, 0);

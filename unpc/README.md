@@ -14,7 +14,7 @@ The site is static. It needs no build step, no server code and no outside script
 |---|---|
 | `assets/style.css` | The one stylesheet for all three pages |
 | `assets/data.js` | Settings, organizers and partners (edit this one) |
-| `assets/site.js` | Theme, menu, next Sunday, Copy, photo slots, the organizer dialog |
+| `assets/site.js` | Theme, menu, next Sunday, Copy, photo slots, the organizer dialog, keeping the reader's place when the window changes size |
 | `assets/chamber.js` | The seat chart drawing shared by every page |
 | `assets/story.js`, `assets/paper.js` | The home page story and its paper sheet (home only) |
 | `assets/home.js` | The case deck and clock, the day bar, the score sheet, and the team and partner previews (home only) |
