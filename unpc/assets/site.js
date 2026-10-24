@@ -1,4 +1,8 @@
-(() => {
+/* UNPC shared behaviour, on every page.
+   Theme, nav and phone menu, next Sunday in Tashkent, register fallback, Copy with status,
+   photo slots, the Next block bookend, and the organizer dialog with deep links.
+   Exposed as window.UNPCSite. Classic defer script; loads after data.js and chamber.js. */
+(function () {
   "use strict";
 
   const data = window.UNPC || {};
@@ -6,55 +10,231 @@
   const people = data.organizers || [];
   const partners = data.partners || [];
   const shown = people.filter((p) => !p.placeholder);
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const root = document.documentElement;
+  const mq = (q) => {
+    try {
+      return window.matchMedia(q);
+    } catch (e) {
+      return { matches: false, addEventListener() {} };
+    }
+  };
+  const reducedMQ = mq("(prefers-reduced-motion: reduce)");
+  const darkMQ = mq("(prefers-color-scheme: dark)");
+  const wideMQ = mq("(min-width: 640px)");
 
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const $ = (sel, r = document) => r.querySelector(sel);
+  const $$ = (sel, r = document) => Array.from(r.querySelectorAll(sel));
   const esc = (value) =>
-    String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    String(value == null ? "" : value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const on = (target, type, fn, opts) => target && target.addEventListener(type, fn, opts);
+  const emit = (type, detail) => root.dispatchEvent(new CustomEvent(type, { detail }));
+  const setUrl = (u) => {
+    try {
+      history.replaceState(history.state, "", u);
+    } catch (e) {}
+  };
+  const motion = () => root.classList.contains("motion");
+  const reducedMotion = () => !motion();
+  // Typographic care for copy from data.js: keep "4 October" and "188 countries" together on one line.
+  const MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December";
+  const tidy = (text) =>
+    String(text == null ? "" : text)
+      .replace(new RegExp("(\\d+) (" + MONTHS + ")", "g"), "$1\u00a0$2")
+      .replace(/(\d+) (?=[a-z])/g, "$1\u00a0");
+  const initials = (name) =>
+    String(name || "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
-  // Photo and logo slots keep their placeholder until the file actually loads.
-  function watchImage(img) {
-    const slot = img.closest("[data-slot]");
-    if (!slot) return;
-    const show = () => {
-      if (img.naturalWidth > 0) slot.classList.add("has-image");
-    };
-    if (img.complete) show();
-    img.addEventListener("load", show);
+  /* ---------- Theme ---------- */
+
+  const THEME_KEY = "unpc-theme";
+  const theme = () => {
+    const forced = root.getAttribute("data-theme");
+    if (forced === "light" || forced === "dark") return forced;
+    return darkMQ.matches ? "dark" : "light";
+  };
+  let lastTheme = theme();
+
+  function setTheme(next, store = true) {
+    if (next !== "light" && next !== "dark") return;
+    const apply = () => root.setAttribute("data-theme", next);
+    if (store) {
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch (e) {}
+    }
+    // A soft cross-fade of the whole page, where supported and motion is allowed.
+    if (motion() && document.startViewTransition && !document.hidden) {
+      try {
+        document.startViewTransition(() => {
+          apply();
+          themeChanged();
+        });
+        return;
+      } catch (e) {}
+    }
+    apply();
+    themeChanged();
   }
 
-  /* Navigation */
+  function themeChanged() {
+    const t = theme();
+    if (t === lastTheme) return;
+    lastTheme = t;
+    $$("[data-theme-toggle]").forEach((b) => b.setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme"));
+    $$('meta[name="theme-color"]').forEach((m) => {
+      m.setAttribute("content", t === "dark" ? "#0d1519" : "#f6f8f8");
+      m.removeAttribute("media");
+    });
+    emit("unpc:theme", { theme: t });
+  }
+
+  function setupTheme() {
+    const t = theme();
+    $$("[data-theme-toggle]").forEach((b) => {
+      b.setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme");
+      on(b, "click", () => setTheme(theme() === "dark" ? "light" : "dark"));
+    });
+    on(darkMQ, "change", themeChanged);
+    // A viewer (or another script) may force data-theme on <html>: follow it.
+    new MutationObserver(themeChanged).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+  const onTheme = (fn) => {
+    const h = (e) => fn(e.detail.theme);
+    on(root, "unpc:theme", h);
+    return () => root.removeEventListener("unpc:theme", h);
+  };
+
+  /* ---------- Motion setting ---------- */
+
+  function setupMotion() {
+    on(reducedMQ, "change", () => {
+      root.classList.toggle("motion", !reducedMQ.matches);
+      emit("unpc:motion", { motion: motion() });
+    });
+  }
+  const onMotion = (fn) => {
+    const h = (e) => fn(e.detail.motion);
+    on(root, "unpc:motion", h);
+    return () => root.removeEventListener("unpc:motion", h);
+  };
+
+  /* ---------- One scroll rAF and one layout signal for the page ---------- */
+
+  const scrollFns = new Set();
+  let scrollQueued = false;
+  function runScroll() {
+    scrollQueued = false;
+    const y = window.scrollY;
+    scrollFns.forEach((fn) => fn(y));
+  }
+  function queueScroll() {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(runScroll);
+  }
+  on(window, "scroll", queueScroll, { passive: true });
+  const onScroll = (fn) => {
+    scrollFns.add(fn);
+    fn(window.scrollY);
+    return () => scrollFns.delete(fn);
+  };
+
+  const layoutFns = new Set();
+  let layoutTimer = 0;
+  let lastLW = window.innerWidth;
+  let lastLH = window.innerHeight;
+  function runLayout() {
+    layoutFns.forEach((fn) => fn());
+  }
+  on(window, "resize", () => {
+    // Ignore the phone address bar: height changes under 120px with the same width.
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (w === lastLW && Math.abs(h - lastLH) < 120) return;
+    lastLW = w;
+    lastLH = h;
+    clearTimeout(layoutTimer);
+    layoutTimer = setTimeout(runLayout, 120);
+  });
+  on(window, "load", runLayout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(runLayout);
+  const onLayout = (fn) => {
+    layoutFns.add(fn);
+    return () => layoutFns.delete(fn);
+  };
+
+  /* ---------- Nav and phone menu ---------- */
 
   function setupNav() {
-    const nav = $(".nav");
+    const nav = $("[data-nav]");
     if (!nav) return;
-    const onScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    onScroll((y) => nav.classList.toggle("is-scrolled", y > 8));
 
-    const button = $(".menu-btn", nav);
+    const button = $("[data-menu]", nav);
     const menu = $("#menu");
     if (!button || !menu) return;
+    const isOpen = () => button.getAttribute("aria-expanded") === "true";
     const setOpen = (open) => {
       button.setAttribute("aria-expanded", String(open));
       button.setAttribute("aria-label", open ? "Close menu" : "Open menu");
       menu.hidden = !open;
       nav.classList.toggle("is-open", open);
+      document.body.classList.toggle("menu-open", open);
     };
-    button.addEventListener("click", () => setOpen(button.getAttribute("aria-expanded") !== "true"));
-    menu.addEventListener("click", (e) => {
+    on(button, "click", () => setOpen(!isOpen()));
+    on(menu, "click", (e) => {
       if (e.target.closest("a")) setOpen(false);
     });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !menu.hidden) {
+    on(document, "keydown", (e) => {
+      if (e.key === "Escape" && isOpen()) {
         setOpen(false);
         button.focus();
       }
     });
+    // A tap outside the bar and the panel (on the scrim) closes it, and does nothing else: on touch, the click that
+    // follows the tap would otherwise land on whatever the scrim covered once it has gone, so that click is dropped.
+    // A swipe there brings no click (the browser cancels the pointer to scroll), and the next press is a new tap: either
+    // one disarms the drop, so only the click of that scrim tap is ever lost.
+    let disarm = null;
+    on(document, "pointerdown", (e) => {
+      if (disarm) disarm();
+      if (!isOpen() || nav.contains(e.target)) return;
+      setOpen(false);
+      const done = () => {
+        clearTimeout(timer);
+        window.removeEventListener("click", swallow, true);
+        window.removeEventListener("pointercancel", done, true);
+        disarm = null;
+      };
+      const swallow = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        done();
+      };
+      const timer = setTimeout(done, 700);
+      window.addEventListener("click", swallow, true);
+      window.addEventListener("pointercancel", done, true);
+      disarm = done;
+    });
+    // While the Next block is on screen, the nav button steps back so only one solid button is in view.
+    const reg = $("[data-nav-register]", nav);
+    const next = $("#next");
+    if (reg && next && window.IntersectionObserver) {
+      new IntersectionObserver((entries) => reg.classList.toggle("is-quiet", entries[0].isIntersecting), { rootMargin: "0px 0px -35% 0px" }).observe(next);
+    }
+    // Growing past the phone layout closes it.
+    on(mq("(min-width: 720px)"), "change", (e) => {
+      if (e.matches && isOpen()) setOpen(false);
+    });
   }
 
-  /* Registration, next date, contact */
+  /* ---------- Next Sunday, in Tashkent ---------- */
 
   function tashkentToday() {
     const parts = new Intl.DateTimeFormat("en-GB", {
@@ -67,28 +247,40 @@
     return new Date(Date.UTC(get("year"), get("month") - 1, get("day")));
   }
 
-  function setupNext() {
-    const targets = $$("[data-next-date]");
-    if (targets.length) {
-      const today = tashkentToday();
-      let date = null;
-      if (config.nextTournament) {
-        const set = new Date(config.nextTournament + "T00:00:00Z");
-        if (!Number.isNaN(set.getTime()) && set >= today) date = set;
-      }
-      if (!date) {
-        date = new Date(today);
-        date.setUTCDate(date.getUTCDate() + ((7 - date.getUTCDay()) % 7));
-      }
-      const label = new Intl.DateTimeFormat("en-GB", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        timeZone: "UTC"
-      }).format(date);
-      const text = date.getTime() === today.getTime() ? "Today, " + label : label;
-      targets.forEach((el) => (el.textContent = text));
+  // { date (UTC midnight), label "Sunday 25 October", text (with "Today, " on the day), weekday, day, isToday }
+  function nextDate() {
+    const today = tashkentToday();
+    let date = null;
+    if (config.nextTournament) {
+      const set = new Date(config.nextTournament + "T00:00:00Z");
+      if (!Number.isNaN(set.getTime()) && set >= today) date = set;
     }
+    if (!date) {
+      date = new Date(today);
+      date.setUTCDate(date.getUTCDate() + ((7 - date.getUTCDay()) % 7));
+    }
+    const fmt = (o) => new Intl.DateTimeFormat("en-GB", Object.assign({ timeZone: "UTC" }, o)).format(date);
+    const label = fmt({ weekday: "long", day: "numeric", month: "long" });
+    const isToday = date.getTime() === today.getTime();
+    return {
+      date,
+      label,
+      isToday,
+      text: isToday ? "Today, " + label : label,
+      weekday: (isToday ? "Today, " : "") + fmt({ weekday: "long" }),
+      day: fmt({ day: "numeric", month: "long" })
+    };
+  }
+
+  function setupNext() {
+    const nd = nextDate();
+    $$("[data-next-date]").forEach((el) => {
+      if (el.hasAttribute("data-next-split")) {
+        // Two lines: the weekday, then the day and month. Each line never breaks inside.
+        el.innerHTML = '<span class="nd-w">' + esc(nd.weekday) + '</span> <span class="nd-d">' + esc(nd.day) + "</span>";
+        el.setAttribute("aria-label", nd.text);
+      } else el.textContent = nd.text;
+    });
 
     const url = (config.registerUrl || "").trim();
     $$("[data-register]").forEach((a) => {
@@ -104,19 +296,30 @@
     $$("[data-telegram]").forEach((el) => {
       el.hidden = !telegram;
       const link = el.matches("a") ? el : $("a", el);
-      if (telegram && link) link.href = telegram;
+      if (telegram && link) {
+        link.href = telegram;
+        link.target = "_blank";
+        link.rel = "noopener";
+      }
     });
 
     if (config.email) {
       $$("[data-email]").forEach((el) => (el.textContent = config.email));
       $$("[data-copy-email]").forEach((el) => (el.dataset.copy = config.email));
+      $$("[data-mailto]").forEach((a) => {
+        const subject = a.getAttribute("data-mailto");
+        a.href = "mailto:" + config.email + (subject ? "?subject=" + encodeURIComponent(subject) : "");
+      });
     }
   }
 
-  // A polite status next to each Copy button, so screen readers hear the result.
-  function addCopyStatus(root = document) {
-    $$("[data-copy]", root).forEach((button) => {
-      if (button.nextElementSibling && button.nextElementSibling.matches("[data-copy-status]")) return;
+  /* ---------- Copy with status ---------- */
+
+  // A polite status after each Copy button, so screen readers hear the result.
+  function addCopyStatus(r = document) {
+    $$("[data-copy]", r).forEach((button) => {
+      const next = button.nextElementSibling;
+      if (next && next.matches("[data-copy-status]")) return;
       const status = document.createElement("span");
       status.className = "sr-only";
       status.setAttribute("role", "status");
@@ -127,15 +330,16 @@
 
   function setupCopy() {
     addCopyStatus();
-    document.addEventListener("click", async (e) => {
+    on(document, "click", async (e) => {
       const button = e.target.closest("[data-copy]");
       if (!button) return;
       const original = button.dataset.label || button.textContent;
       button.dataset.label = original;
-      const status = button.nextElementSibling && button.nextElementSibling.matches("[data-copy-status]") ? button.nextElementSibling : null;
-      const say = (text) => {
-        button.textContent = text;
-        if (status) status.textContent = text === "Copied" ? "Email address copied" : "Email address selected";
+      const next = button.nextElementSibling;
+      const status = next && next.matches("[data-copy-status]") ? next : null;
+      const say = (word, message) => {
+        button.textContent = word;
+        if (status) status.textContent = message;
         clearTimeout(button._timer);
         button._timer = setTimeout(() => {
           button.textContent = original;
@@ -144,10 +348,12 @@
       };
       try {
         if (document.featurePolicy && !document.featurePolicy.allowsFeature("clipboard-write")) throw new Error("blocked");
-        await navigator.clipboard.writeText(button.dataset.copy);
-        say("Copied");
-      } catch {
-        const text = button.parentElement && $(".email", button.parentElement);
+        if (!navigator.clipboard) throw new Error("none");
+        await navigator.clipboard.writeText(button.dataset.copy || config.email || "");
+        say("Copied", "Email address copied");
+      } catch (err) {
+        const scope = button.closest(".contact, [data-copy-scope]") || button.parentElement;
+        const text = scope && $(".email", scope);
         if (text) {
           const range = document.createRange();
           range.selectNodeContents(text);
@@ -155,493 +361,395 @@
           sel.removeAllRanges();
           sel.addRange(range);
         }
-        say("Selected");
+        say("Selected", "Email address selected. Press Ctrl+C or Cmd+C to copy it.");
       }
     });
   }
 
-  /* Hero: draw a case, run the hour */
+  /* ---------- Photo slots ---------- */
 
-  function makeClock(root) {
-    const clock = $("[data-clock]", root);
-    const label = $("[data-clock-label]", root);
-    const toggle = $("[data-clock-toggle]", root);
-    const reset = $("[data-clock-reset]", root);
-    if (!clock || !toggle) return { reset() {} };
-
-    const FULL = 60 * 60 * 1000;
-    const words = {
-      idle: ["Preparation time", "Start the hour"],
-      running: ["Teams are preparing", "Pause"],
-      paused: ["Paused", "Resume"],
-      done: ["Time. Teams present now.", "Start again"]
+  // A slot ([data-slot]) keeps its designed stand-in until its image really loads; a missing file is removed.
+  // An img with data-alt keeps alt="" until then, so screen readers never hear a photo that is not there.
+  const watched = new WeakSet();
+  function watchImage(img) {
+    if (!img || watched.has(img)) return;
+    watched.add(img);
+    const slot = img.closest("[data-slot]");
+    const show = () => { if (img.naturalWidth > 0) { if (img.dataset.alt) img.alt = img.dataset.alt; if (slot) slot.classList.add("has-image"); } };
+    const fail = () => {
+      if (slot) slot.classList.remove("has-image");
+      img.remove();
     };
-    let left = FULL;
-    let startedAt = 0;
-    let timer = 0;
-    let state = "idle";
-
-    const format = (ms) => {
-      const s = Math.max(0, Math.ceil(ms / 1000));
-      return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
-    };
-    const remaining = () => (state === "running" ? left - (performance.now() - startedAt) : left);
-    const setState = (next) => {
-      state = next;
-      root.dataset.clockState = next;
-      label.textContent = words[next][0];
-      toggle.textContent = words[next][1];
-      if (reset) reset.hidden = next === "idle";
-    };
-    const tick = () => {
-      const ms = remaining();
-      if (ms <= 0) {
-        clearInterval(timer);
-        left = 0;
-        clock.textContent = "00:00";
-        setState("done");
-        return;
-      }
-      clock.textContent = format(ms);
-    };
-    const start = () => {
-      startedAt = performance.now();
-      setState("running");
-      clearInterval(timer);
-      timer = setInterval(tick, 250);
-      tick();
-    };
-    const pause = () => {
-      left = remaining();
-      clearInterval(timer);
-      setState("paused");
-      tick();
-    };
-    const clear = () => {
-      clearInterval(timer);
-      left = FULL;
-      setState("idle");
-      clock.textContent = format(FULL);
-    };
-
-    toggle.addEventListener("click", () => {
-      if (state === "running") pause();
-      else if (state === "done") {
-        clear();
-        start();
-      } else start();
-    });
-    if (reset)
-      reset.addEventListener("click", () => {
-        clear();
-        toggle.focus();
-      });
-    setState("idle");
-    return { reset: clear };
-  }
-
-  function setupDeck() {
-    const deck = $("[data-deck]");
-    if (!deck) return;
-    const card = $(".case", deck);
-    const items = $$(".case-item", deck);
-    const count = $("[data-case-count]", deck);
-    const drawButton = $("[data-draw]", deck);
-    const clock = makeClock(card);
-    let current = items.findIndex((el) => el.classList.contains("is-current"));
-    let pile = [];
-    let busy = false;
-
-    const show = (i) => {
-      items.forEach((el, k) => el.classList.toggle("is-current", k === i));
-      count.textContent = "Case " + (i + 1) + " of " + items.length;
-      current = i;
-    };
-    const nextIndex = () => {
-      if (!pile.length) {
-        pile = items.map((_, i) => i).filter((i) => i !== current);
-        for (let i = pile.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [pile[i], pile[j]] = [pile[j], pile[i]];
-        }
-      }
-      return pile.pop();
-    };
-
-    drawButton.addEventListener("click", async () => {
-      if (busy) return;
-      busy = true;
-      const next = nextIndex();
-      clock.reset();
-      if (reduced.matches || !card.animate) {
-        show(next);
-        busy = false;
-        return;
-      }
-      const out = card.animate(
-        [{ transform: "none", opacity: 1 }, { transform: "translate(-32px, 4px) rotate(-3deg)", opacity: 0 }],
-        { duration: 220, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" }
-      );
-      await out.finished;
-      show(next);
-      card.animate(
-        [{ transform: "translate(20px, 24px) rotate(2.5deg)", opacity: 0 }, { transform: "none", opacity: 1 }],
-        { duration: 460, easing: "cubic-bezier(.2,.7,.2,1)" }
-      );
-      out.cancel();
-      busy = false;
-    });
-  }
-
-  /* The day, drawn to scale */
-
-  function setupDay() {
-    const day = $("[data-day]");
-    if (!day) return;
-    const parts = $$("[data-phase]", day);
-    let pinned = null;
-    const highlight = (key) => parts.forEach((el) => el.classList.toggle("is-active", key !== null && el.dataset.phase === key));
-    parts.forEach((el) => {
-      el.addEventListener("pointerenter", () => highlight(el.dataset.phase));
-      el.addEventListener("pointerleave", () => highlight(pinned));
-    });
-    $$("button[data-phase]", day).forEach((button) => {
-      button.addEventListener("focus", () => highlight(button.dataset.phase));
-      button.addEventListener("blur", () => highlight(pinned));
-      button.addEventListener("click", () => {
-        pinned = pinned === button.dataset.phase ? null : button.dataset.phase;
-        $$("button[data-phase]", day).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.phase === pinned)));
-        highlight(pinned);
-      });
-    });
-  }
-
-  /* Judging sheet */
-
-  function setupSheet() {
-    const sheet = $("[data-sheet]");
-    if (!sheet) return;
-    const rows = $$(".sheet-row", sheet);
-    const totalA = $('[data-total="a"]', sheet);
-    const totalB = $('[data-total="b"]', sheet);
-    const verdict = $("[data-verdict]", sheet);
-
-    const paint = (input) => {
-      const p = ((input.value - input.min) / (input.max - input.min)) * 100;
-      input.style.setProperty("--p", p + "%");
-      const out = input.parentElement.querySelector("output");
-      if (out) out.textContent = input.value;
-    };
-
-    const update = () => {
-      let a = 0;
-      let b = 0;
-      let qa = 0;
-      let qb = 0;
-      rows.forEach((row) => {
-        const [ia, ib] = $$("input", row);
-        paint(ia);
-        paint(ib);
-        a += Number(ia.value);
-        b += Number(ib.value);
-        if (row.dataset.key === "solution") {
-          qa = Number(ia.value);
-          qb = Number(ib.value);
-        }
-      });
-      totalA.textContent = a;
-      totalB.textContent = b;
-      const high = Math.max(a, b);
-      const low = Math.min(a, b);
-      if (a !== b) {
-        verdict.textContent = "Team " + (a > b ? "A" : "B") + " wins the room, " + high + " to " + low + ".";
-      } else if (qa !== qb) {
-        verdict.textContent =
-          "Tied at " + a + ". Team " + (qa > qb ? "A" : "B") + " wins on quality of the solution, " + Math.max(qa, qb) + " to " + Math.min(qa, qb) + ".";
-      } else {
-        verdict.textContent = "Tied at " + a + ", and level on quality of the solution too. The rubric has no further tie-break, so the judges talk it through.";
-      }
-    };
-
-    sheet.addEventListener("input", update);
-    update();
-  }
-
-  /* People */
-
-  const personCard = (p, i) => `
-    <li class="person-card${p.placeholder ? " is-placeholder" : ""}">
-      <button type="button" class="person-trigger" data-person="${i}" aria-haspopup="dialog">
-        <span class="photo" data-slot>
-          <img src="${esc(p.photo)}" alt="" loading="lazy" decoding="async">
-        </span>
-        <span class="person-name">${esc(p.name)}</span>
-        <span class="person-role">${esc(p.role)}</span>
-      </button>
-    </li>`;
-
-  // A role that has no organizer yet: a quiet slot, not a button.
-  const roleCard = (p) => `
-    <li class="person-card is-placeholder">
-      <div class="person-trigger">
-        <span class="photo" data-slot>
-          <img src="${esc(p.photo)}" alt="" loading="lazy" decoding="async">
-        </span>
-        <span class="person-name">${esc(p.role)}</span>
-      </div>
-    </li>`;
-
-  // On the Team page the first person gets a full-width row with their bio.
-  const leadCard = (p, i) => `
-    <li class="person-lead${p.placeholder ? " is-placeholder" : ""}">
-      <button type="button" class="person-trigger" data-person="${i}" aria-haspopup="dialog" aria-label="${esc(p.name)}, ${esc(p.role)}">
-        <span class="photo" data-slot>
-          <img src="${esc(p.photo)}" alt="" loading="lazy" decoding="async">
-        </span>
-      </button>
-      <div class="lead-text">
-        <p class="person-kicker">${esc(p.role)}</p>
-        <h2 class="lead-name">${esc(p.name)}</h2>
-        ${p.school ? `<p class="lead-school">${esc(p.school)}</p>` : ""}
-        <p class="lead-bio">${esc(p.bio)}</p>
-        <button type="button" class="btn btn-line" data-person="${i}" aria-haspopup="dialog">About ${esc(p.name.split(" ")[0])}</button>
-      </div>
-    </li>`;
-
-  function renderPeople() {
-    const lists = $$("[data-people]");
-    if (!lists.length || !people.length) return;
-    lists.forEach((list) => {
-      const featured = list.dataset.people === "team";
-      const source = people;
-      const limit = Number(list.dataset.limit) || source.length;
-      list.innerHTML = source
-        .slice(0, limit)
-        .map((p, i) => {
-          if (p.placeholder) return roleCard(p);
-          const n = shown.indexOf(p);
-          return featured && i === 0 ? leadCard(p, n) : personCard(p, n);
-        })
-        .join("");
-      $$("img", list).forEach(watchImage);
-    });
-    if (shown.length) setupPersonDialog();
-  }
-
-  function linksHtml(links = {}) {
-    const out = [];
-    if (links.email) {
-      out.push(
-        `<span class="contact"><span class="email">${esc(links.email)}</span><button type="button" class="btn-copy" data-copy="${esc(links.email)}">Copy</button></span>`
-      );
+    img.addEventListener("load", show);
+    img.addEventListener("error", fail);
+    if (img.complete && img.getAttribute("src")) {
+      if (img.naturalWidth > 0) show();
+      else fail();
     }
-    if (links.telegram) out.push(`<a href="${esc(links.telegram)}" target="_blank" rel="noopener">Telegram</a>`);
-    if (links.linkedin) out.push(`<a href="${esc(links.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>`);
-    return out.join("");
+  }
+  function watchAll(r = document) {
+    if (r.matches && r.matches("[data-slot] img")) watchImage(r);
+    $$("[data-slot] img", r).forEach(watchImage);
+  }
+  function setupSlots() {
+    watchAll();
+    // Slots rendered later by page scripts are picked up on their own.
+    new MutationObserver((records) => {
+      records.forEach((rec) => rec.addedNodes.forEach((n) => n.nodeType === 1 && watchAll(n)));
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Markup for a 4:5 portrait slot of an organizer: initials until the photo loads.
+  function portraitMarkup(p, opts = {}) {
+    const tag = opts.tag || "span";
+    const cls = "plate portrait" + (opts.className ? " " + opts.className : "");
+    return (
+      "<" + tag + ' class="' + cls + '" data-slot data-portrait>' +
+      '<span class="monogram" aria-hidden="true">' + esc(initials(p.name)) + "</span>" +
+      '<img src="' + esc(p.photo) + '" alt="' + esc(opts.alt == null ? "Portrait of " + p.name : opts.alt) + '"' +
+      (opts.eager ? "" : ' loading="lazy"') + ' decoding="async">' +
+      "</" + tag + ">"
+    );
+  }
+
+  /* ---------- The Next block bookend: a quiet chamber with one open seat ---------- */
+
+  function setupNextArc() {
+    const C = window.UNPCChamber;
+    $$("[data-next-arc]").forEach((svg) => {
+      if (!C || svg.childElementCount) return;
+      const unit = C.seats(140, 0.42);
+      // The seat left open: front row, a little right of centre.
+      let pick = 0;
+      let best = Infinity;
+      unit.list.forEach((st, i) => {
+        if (st.row !== 0) return;
+        const d = Math.abs(st.th - Math.PI * 0.42);
+        if (d < best) {
+          best = d;
+          pick = i;
+        }
+      });
+      C.chamberSVG(svg, {
+        n: 140,
+        q: 0.42,
+        cx: 200,
+        cy: 206,
+        R: 192,
+        rK: 0.25,
+        cls: (i) => (i === pick ? "you" : "seat"),
+        r: (i, st, base) => (i === pick ? base * 1.05 : base)
+      });
+    });
+  }
+
+  /* ---------- Organizer dialog (8.3) ---------- */
+
+  const dialogApi = { open() {}, close() {}, isOpen: () => false };
+
+  function contactMarkup(email) {
+    return (
+      '<div class="contact" data-copy-scope>' +
+      '<span class="email">' + esc(email) + "</span>" +
+      '<button type="button" class="btn btn-quiet btn-sm" data-copy="' + esc(email) + '">Copy</button>' +
+      "</div>"
+    );
   }
 
   function setupPersonDialog() {
+    if (!shown.length) return;
     const dialog = document.createElement("dialog");
     dialog.className = "person";
     dialog.setAttribute("aria-labelledby", "person-name");
-    dialog.innerHTML = `
-      <div class="person-inner">
-        <button type="button" class="person-close" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
-        </button>
-        <div class="photo person-photo" data-slot>
-          <img alt="">
-        </div>
-        <div class="person-body">
-          <p class="person-kicker"></p>
-          <h2 id="person-name"></h2>
-          <p class="person-school"></p>
-          <p class="person-bio"></p>
-          <p class="person-more"></p>
-          <div class="person-links"></div>
-          <div class="person-steps">
-            <button type="button" class="btn-text" data-step="-1">Previous</button>
-            <span class="person-count"></span>
-            <button type="button" class="btn-text" data-step="1">Next</button>
-          </div>
-        </div>
-      </div>`;
+    dialog.innerHTML =
+      '<div class="person-panel" data-panel>' +
+      '<button type="button" class="icon-btn person-close" aria-label="Close">' +
+      '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
+      "</button>" +
+      '<div class="plate portrait person-photo" data-slot><span class="monogram" aria-hidden="true"></span></div>' +
+      '<div class="person-body">' +
+      '<p class="person-role"></p>' +
+      '<h2 class="person-name" id="person-name"></h2>' +
+      '<p class="person-school"></p>' +
+      '<p class="person-bio"></p>' +
+      '<p class="person-more"></p>' +
+      '<div class="person-contact"></div>' +
+      '<div class="person-steps">' +
+      '<button type="button" class="btn-link" data-step="-1">Previous</button>' +
+      '<span class="person-count"></span>' +
+      '<button type="button" class="btn-link" data-step="1">Next</button>' +
+      "</div>" +
+      "</div>" +
+      "</div>";
     document.body.append(dialog);
 
+    const panel = $("[data-panel]", dialog);
     const photo = $(".person-photo", dialog);
-    const img = $("img", photo);
+    const body = $(".person-body", dialog);
     const closeButton = $(".person-close", dialog);
+    const steps = $(".person-steps", dialog);
     const field = (sel) => $(sel, dialog);
+    steps.hidden = shown.length < 2;
+
     let index = 0;
-    let list = null;
-    let opener = null;
+    let opener = null; // the element the user activated, when opened by the user
     let baseHash = "";
-    const setUrl = (u) => {
-      try {
-        history.replaceState(null, "", u);
-      } catch {}
-    };
-    watchImage(img);
-    $(".person-steps", dialog).hidden = shown.length < 2;
+    let closing = false;
+
+    const anims = (el) => el.getAnimations && el.getAnimations().forEach((a) => a.cancel());
 
     const fill = (i) => {
       index = (i + shown.length) % shown.length;
       const p = shown[index];
+      // A fresh img each time: a missing file removes its img.
+      const old = $("img", photo);
+      if (old) old.remove();
       photo.classList.remove("has-image");
-      img.alt = p.placeholder ? "" : "Portrait of " + p.name;
+      $(".monogram", photo).textContent = initials(p.name);
+      const img = document.createElement("img");
+      img.alt = "Portrait of " + p.name;
+      img.decoding = "async";
       img.src = p.photo;
-      field(".person-kicker").textContent = p.role;
-      field("#person-name").textContent = p.name;
+      photo.append(img);
+      watchImage(img);
+      field(".person-role").textContent = p.role || "";
+      field(".person-name").textContent = p.name;
       field(".person-school").textContent = p.school || "";
       field(".person-school").hidden = !p.school;
-      field(".person-bio").textContent = p.bio || "";
-      field(".person-more").textContent = p.more || "";
+      field(".person-bio").textContent = tidy(p.bio);
+      field(".person-bio").hidden = !p.bio;
+      field(".person-more").textContent = tidy(p.more);
       field(".person-more").hidden = !p.more;
-      field(".person-links").innerHTML = linksHtml(p.links);
-      addCopyStatus(field(".person-links"));
+      const email = p.links && p.links.email;
+      field(".person-contact").innerHTML = email ? contactMarkup(email) : "";
+      field(".person-contact").hidden = !email;
+      addCopyStatus(field(".person-contact"));
       field(".person-count").textContent = index + 1 + " of " + shown.length;
       if (p.id) setUrl("#" + p.id);
     };
 
-    const cardPhoto = (i) => (list ? $(`[data-person="${i}"] .photo`, list) : null);
-    const canMorph = (el) => el && document.startViewTransition && !reduced.matches;
+    // The portrait the dialog grows out of: the trigger itself, a portrait inside it,
+    // or (for text triggers and deep links) a visible portrait of the same person.
+    const sourceRect = (trigger, i) => {
+      let el = null;
+      if (trigger) el = trigger.matches("[data-portrait], .portrait") ? trigger : $("[data-portrait], .portrait", trigger);
+      // A seat of the team chamber: the seat itself, widened to at least 48px (in the portrait's 4:5) so the scale stays gentle.
+      if (!el && trigger instanceof SVGElement) {
+        const r = trigger.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          const w = Math.max(48, r.width);
+          const h = w * 1.25;
+          return { left: r.left + r.width / 2 - w / 2, top: r.top + r.height / 2 - h / 2, width: w, height: h };
+        }
+      }
+      if (!el) {
+        el = $$('[data-person="' + i + '"] [data-portrait], [data-person="' + i + '"][data-portrait], [data-person="' + i + '"] .portrait').find((n) => {
+          const r = n.getBoundingClientRect();
+          return r.width > 0 && r.bottom > 0 && r.top < window.innerHeight;
+        });
+      }
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 ? r : null;
+    };
+
+    const backdrop = (from, to, duration) => {
+      try {
+        dialog.animate([{ opacity: from }, { opacity: to }], { duration, easing: "ease-out", pseudoElement: "::backdrop", fill: "forwards" });
+      } catch (e) {}
+    };
+
+    const animateOpen = (trigger, i) => {
+      if (!motion() || !panel.animate) return;
+      [panel, body].forEach(anims);
+      if (dialog.getAnimations) dialog.getAnimations({ subtree: false }).forEach((a) => a.cancel());
+      if (wideMQ.matches) {
+        const from = sourceRect(trigger, i);
+        const ease = "cubic-bezier(.2,.75,.1,1)";
+        backdrop(0, 1, 420);
+        if (from) {
+          // FLIP: from the clicked portrait's rect to the dialog portrait's rect.
+          const pr = panel.getBoundingClientRect();
+          const to = photo.getBoundingClientRect();
+          const s = from.width / to.width;
+          const sy = from.height / to.height;
+          const tx = from.left - pr.left - (to.left - pr.left) * s;
+          const ty = from.top - pr.top - (to.top - pr.top) * sy;
+          panel.animate([{ transform: "translate(" + tx + "px," + ty + "px) scale(" + s + "," + sy + ")", borderRadius: "6px" }, { transform: "none" }], { duration: 620, easing: ease });
+          body.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 0, transform: "translateY(14px)", offset: 0.35 }, { opacity: 1, transform: "none" }], { duration: 620, easing: ease });
+          closeButton.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1 }], { duration: 620 });
+        } else {
+          panel.animate([{ opacity: 0, transform: "translateY(10px) scale(.98)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: ease });
+        }
+      } else {
+        backdrop(0, 1, 360);
+        panel.animate([{ transform: "translateY(100%)" }, { transform: "none" }], { duration: 360, easing: "cubic-bezier(.2,.7,.1,1)" });
+      }
+    };
 
     const open = (i, trigger, user) => {
-      if (!dialog.open) {
-        opener = user ? trigger : null;
-        if (!shown.some((p) => "#" + p.id === location.hash)) baseHash = location.hash;
+      const k = Number(i);
+      if (!Number.isInteger(k) || k < 0 || k >= shown.length) return;
+      if (dialog.open) {
+        fill(k);
+        return;
       }
-      list = trigger ? trigger.closest("[data-people]") : $("[data-people]");
-      const from = (trigger && $(".photo", trigger)) || cardPhoto(i);
-      const show = () => {
-        fill(i);
-        if (!dialog.open) dialog.showModal();
-        closeButton.focus();
-      };
-      if (!canMorph(from)) return show();
-      from.style.viewTransitionName = "person-photo";
-      dialog.classList.add("is-vt");
-      const vt = document.startViewTransition(() => {
-        from.style.viewTransitionName = "";
-        show();
-        photo.style.viewTransitionName = "person-photo";
-      });
-      vt.finished.finally(() => {
-        photo.style.viewTransitionName = "";
-        dialog.classList.remove("is-vt");
-      });
+      closing = false;
+      // A trigger inside an aria-hidden figure (the team chamber's seat) returns focus to that person's button instead.
+      opener = user && trigger ? (trigger.closest('[aria-hidden="true"]') ? $('button[data-person="' + trigger.getAttribute("data-person") + '"]') : trigger) : null;
+      if (!shown.some((p) => "#" + p.id === location.hash)) baseHash = location.hash;
+      fill(k);
+      dialog.showModal();
+      panel.scrollTop = 0;
+      closeButton.focus({ preventScroll: true });
+      animateOpen(trigger, k);
+      emit("unpc:dialog", { open: true, index: k });
+    };
+
+    const finishClose = () => {
+      [panel, body].forEach(anims);
+      if (dialog.getAnimations) dialog.getAnimations({ subtree: false }).forEach((a) => a.cancel());
+      dialog.close();
+      closing = false;
+      setUrl(location.pathname + location.search + baseHash);
+      // Focus returns to the opener; after a deep link, to the matching card, without scrolling.
+      let back = opener && document.contains(opener) ? opener : null;
+      if (!back) back = $('[data-person="' + index + '"]') || $('[data-person="' + (shown[index] && shown[index].id) + '"]');
+      // After a deep link, a card far off screen would leave focus thousands of pixels away, and a page with no card
+      // (Partners) would leave it on the body: use the top of the page.
+      const offscreen = (el) => { const r = el.getBoundingClientRect(); return r.bottom < 0 || r.top > innerHeight; };
+      if (!opener && (!back || offscreen(back))) back = document.getElementById("main");
+      if (back) back.focus({ preventScroll: !opener });
+      opener = null;
+      emit("unpc:dialog", { open: false, index });
     };
 
     const close = () => {
-      const to = cardPhoto(index);
-      const back = opener && Number(opener.dataset.person) === index ? opener : to ? to.closest("[data-person]") : null;
-      const hide = () => {
-        dialog.close();
-        setUrl(location.pathname + location.search + baseHash);
+      if (!dialog.open || closing) return;
+      if (!motion() || !panel.animate) return finishClose();
+      closing = true;
+      backdrop(1, 0, 220);
+      const a = panel.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(.97)" }], { duration: 220, easing: "ease-in", fill: "forwards" });
+      a.onfinish = finishClose;
+      a.oncancel = () => {
+        if (closing) finishClose();
       };
-      if (!canMorph(to) || !dialog.open) {
-        hide();
-        if (back) back.focus({ preventScroll: !opener });
-        return;
-      }
-      photo.style.viewTransitionName = "person-photo";
-      const vt = document.startViewTransition(() => {
-        photo.style.viewTransitionName = "";
-        hide();
-        to.style.viewTransitionName = "person-photo";
-      });
-      vt.finished.finally(() => {
-        to.style.viewTransitionName = "";
-        if (back) back.focus({ preventScroll: !opener });
-      });
     };
 
-    document.addEventListener("click", (e) => {
+    // Any element with data-person opens the dialog (index into shown, or the person's id).
+    const resolve = (v) => {
+      if (v == null || v === "") return -1;
+      if (/^\d+$/.test(String(v))) return Number(v);
+      return shown.findIndex((p) => p.id === v);
+    };
+    on(document, "click", (e) => {
       const trigger = e.target.closest("[data-person]");
-      if (trigger) open(Number(trigger.dataset.person), trigger, true);
+      if (!trigger || dialog.contains(trigger)) return;
+      const k = resolve(trigger.getAttribute("data-person"));
+      if (k < 0) return;
+      e.preventDefault();
+      open(k, trigger, true);
     });
+
     const outside = (e) => {
-      const r = dialog.getBoundingClientRect();
+      const r = panel.getBoundingClientRect();
       return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
     };
     let pressedOutside = false;
-    dialog.addEventListener("pointerdown", (e) => {
-      pressedOutside = e.target === dialog && outside(e);
+    on(dialog, "pointerdown", (e) => {
+      pressedOutside = outside(e);
     });
-    dialog.addEventListener("click", (e) => {
-      if (e.target === dialog && pressedOutside && outside(e)) close();
+    on(dialog, "click", (e) => {
+      const wasOutside = pressedOutside;
+      pressedOutside = false;
+      // Keyboard clicks report 0,0 and never count as a backdrop click.
+      if (wasOutside && e.detail > 0 && outside(e)) {
+        close();
+        return;
+      }
       const step = e.target.closest("[data-step]");
       if (step) fill(index + Number(step.dataset.step));
     });
-    closeButton.addEventListener("click", close);
-    dialog.addEventListener("cancel", (e) => {
+    on(closeButton, "click", close);
+    on(dialog, "cancel", (e) => {
       e.preventDefault();
       close();
     });
-    dialog.addEventListener("keydown", (e) => {
+    on(dialog, "keydown", (e) => {
       if (shown.length < 2) return;
+      if (e.target.closest && e.target.closest("input, textarea")) return;
       if (e.key === "ArrowRight") fill(index + 1);
       if (e.key === "ArrowLeft") fill(index - 1);
     });
 
-    const fromHash = shown.findIndex((p) => p.id && "#" + p.id === location.hash);
-    if (fromHash > -1) {
-      const trigger = $(`[data-people] [data-person="${fromHash}"]`);
-      open(fromHash, trigger);
-    }
+    const fromHash = () => {
+      const k = shown.findIndex((p) => p.id && "#" + p.id === location.hash);
+      if (k > -1 && !dialog.open) {
+        open(k, $('[data-person="' + k + '"]'), false);
+        // The browser's own scroll to the fragment can run after this and take focus out of the dialog.
+        const refocus = () => { if (dialog.open && !dialog.contains(document.activeElement)) closeButton.focus({ preventScroll: true }); };
+        requestAnimationFrame(refocus);
+        if (document.readyState !== "complete") window.addEventListener("load", () => requestAnimationFrame(refocus), { once: true });
+      }
+    };
+    on(window, "hashchange", fromHash);
+    // Page scripts render their triggers before DOMContentLoaded (all scripts are defer), so check then.
+    if (document.readyState === "loading") on(document, "DOMContentLoaded", fromHash);
+    else fromHash();
+
+    dialogApi.open = open;
+    dialogApi.close = close;
+    dialogApi.isOpen = () => dialog.open;
+    dialogApi.element = dialog;
   }
 
-  /* Partners */
+  /* ---------- Start ---------- */
 
-  const logoSlot = (p) => `
-    <div class="logo-slot" data-slot>
-      <img src="${esc(p.logo)}" alt="${esc(p.name)}" decoding="async">
-      <span class="logo-word">${esc(p.short || p.name)}</span>
-    </div>`;
-
-  const partnerTile = (p) => `
-    <li>
-      ${logoSlot(p)}
-      <span class="partner-role">${esc(p.role)}</span>
-    </li>`;
-
-  const partnerRow = (p) => {
-    let host = "";
-    try {
-      host = p.url ? new URL(p.url).hostname.replace(/^www\./, "") : "";
-    } catch {
-      host = "";
-    }
-    return `
-    <li class="partner-row" id="${esc(p.id)}">
-      ${logoSlot(p)}
-      <div>
-        <p class="partner-role">${esc(p.role)}</p>
-        <h2>${esc(p.name)}</h2>
-        ${p.detail ? `<p class="partner-detail">${esc(p.detail)}</p>` : ""}
-        <p class="partner-text">${esc(p.text)}</p>
-        ${host ? `<a class="partner-url" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(host)}</a>` : ""}
-      </div>
-    </li>`;
-  };
-
-  function renderPartners() {
-    $$("[data-partners]").forEach((list) => {
-      const rows = list.dataset.partners === "rows";
-      list.innerHTML = partners.map(rows ? partnerRow : partnerTile).join("");
-      $$("img", list).forEach(watchImage);
-    });
-  }
-
-  /* Start */
-
-  $$("[data-slot] img").forEach(watchImage);
+  setupMotion();
+  setupTheme();
   setupNav();
   setupNext();
   setupCopy();
-  setupDeck();
-  setupDay();
-  setupSheet();
-  renderPartners();
-  renderPeople();
+  setupSlots();
+  setupNextArc();
+  setupPersonDialog();
+
+  window.UNPCSite = {
+    // data
+    config,
+    people,
+    shown,
+    partners,
+    // organizer dialog: index into `shown`; triggerEl is the element it grows out of and gets focus back
+    openPerson: (index, triggerEl) => dialogApi.open(index, triggerEl || null, Boolean(triggerEl)),
+    closePerson: () => dialogApi.close(),
+    dialogOpen: () => dialogApi.isOpen(),
+    // photo slots
+    watchImage,
+    watchAll,
+    portraitMarkup,
+    initials,
+    // theme and motion
+    theme,
+    setTheme,
+    onTheme,
+    reducedMotion,
+    motion,
+    onMotion,
+    // shared loops and signals
+    onScroll,
+    onLayout,
+    // next Sunday and contact
+    nextDate,
+    tashkentToday,
+    addCopyStatus,
+    contactMarkup,
+    // helpers
+    tidy,
+    setUrl,
+    esc,
+    $,
+    $$
+  };
+  emit("unpc:ready", {});
 })();

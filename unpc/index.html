@@ -5,358 +5,722 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Uzbekistan National Policy Competition</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="UNPC is a weekly policy competition for high school students in Tashkent. Teams get one real policy problem and an hour to solve it, professors judge, and the winning resolution is sent to the Oliy Majlis.">
-<meta property="og:title" content="Uzbekistan National Policy Competition">
-<meta property="og:description" content="Every Sunday in Tashkent, high school teams get one real policy problem and an hour to solve it.">
-<meta property="og:image" content="photos/hero.jpg">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d1012" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23007891'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-weight='800' font-size='34' fill='white'%3EU%3C/text%3E%3C/svg%3E">
+<meta name="description" content="The Uzbekistan National Policy Competition: a non-profit, student-run policy tournament for high school students in Tashkent, every Sunday. The winning resolution is sent to the Oliy Majlis.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f8f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1519" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg fill='%236b7d86'%3E%3Ccircle cx='4' cy='25' r='3'/%3E%3Ccircle cx='8.6' cy='13.6' r='3'/%3E%3Ccircle cx='16' cy='8.5' r='3'/%3E%3Ccircle cx='23.4' cy='13.6' r='3'/%3E%3Ccircle cx='28' cy='25' r='3'/%3E%3C/g%3E%3Ccircle cx='16' cy='23.5' r='3.6' fill='%230099b5'/%3E%3C/svg%3E">
+<script>(function(){var d=document.documentElement;d.classList.add('js');
+try{var t=localStorage.getItem('unpc-theme');if(t==='light'||t==='dark')d.setAttribute('data-theme',t);}catch(e){}
+try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.classList.add('motion');}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..800&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400..600&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..500&amp;display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<noscript><style>.photo img,.photo:not(.has-image) img{opacity:1;visibility:visible}</style></noscript>
 <script src="assets/data.js" defer></script>
+<script src="assets/chamber.js" defer></script>
 <script src="assets/site.js" defer></script>
+<script src="assets/story.js" defer></script>
+<script src="assets/paper.js" defer></script>
+<script src="assets/home.js" defer></script>
 </head>
-<body>
+<body data-page="home">
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="nav">
-  <div class="wrap nav-bar">
-    <a class="wordmark" href="index.html">UNPC</a>
+<header class="nav" data-nav>
+  <div class="nav-in">
+    <a class="brand" href="index.html" aria-label="UNPC, home">
+      <svg class="brand-mark" viewBox="0 0 28 16" aria-hidden="true"><circle cx="3" cy="14" r="2"/><circle cx="6.2" cy="6.4" r="2"/><circle cx="14" cy="3" r="2"/><circle cx="21.8" cy="6.4" r="2"/><circle cx="25" cy="14" r="2"/><circle class="brand-core" cx="14" cy="13" r="2.4"/></svg>
+      <span>UNPC</span>
+    </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="#format">Format</a>
-      <a href="#judging">Judging</a>
+      <a href="index.html" aria-current="page">Home</a>
       <a href="team.html">Team</a>
       <a href="partners.html">Partners</a>
     </nav>
-    <a class="btn btn-primary" href="#next" data-register>Register</a>
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+    <div class="nav-tools">
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path class="half" d="M10 2.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor"/></svg>
+      </button>
+      <a class="btn btn-sm" href="#next" data-nav-register>Register</a>
+      <button class="icon-btn menu-btn" type="button" data-menu aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path class="l1" d="M3.5 7h13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path class="l2" d="M3.5 13h13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
   <nav class="menu" id="menu" aria-label="Menu" hidden>
-    <div class="wrap">
-      <ul>
-        <li><a href="#format">Format</a></li>
-        <li><a href="#judging">Judging</a></li>
-        <li><a href="team.html">Team</a></li>
-        <li><a href="partners.html">Partners</a></li>
-      </ul>
-    </div>
+    <ul>
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="team.html">Team</a></li>
+      <li><a href="partners.html">Partners</a></li>
+    </ul>
   </nav>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
-  <section class="hero" aria-labelledby="hero-title">
-    <div class="wrap">
-      <div class="hero-copy">
-        <h1 id="hero-title"><span>Uzbekistan</span> <span>National</span> <span>Policy</span> <span>Competition</span></h1>
-        <p class="hero-lede">Every Sunday in Tashkent, high school students are drawn into teams, given one real policy problem and an hour to solve it. University professors judge, and the winning resolution is sent to the Oliy Majlis.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#next" data-register>Register for Sunday</a>
-          <a class="btn-text" href="#format">See how a tournament runs</a>
+<!-- STORY -->
+<section class="story" id="top" aria-label="How a UNPC Sunday works" data-story>
+  <div class="story-pin" data-pin>
+    <canvas class="story-gl" data-gl aria-hidden="true"></canvas>
+    <canvas class="story-dots" data-stage aria-hidden="true"></canvas>
+
+    <div class="hero-copy" data-hero>
+      <div class="hero-figure" data-hero-figure>
+        <canvas class="hero-fig" data-fig="0" aria-hidden="true"></canvas>
+      </div>
+      <p class="well" data-well>
+        <span class="well-label">Next tournament</span>
+        <strong class="well-date" data-next-date>This Sunday</strong>
+      </p>
+      <div class="hero-text" data-hero-text>
+        <h1 class="hero-title"><span class="hl">Students write policy.</span> <span class="hl">The best goes to parliament.</span></h1>
+        <p class="hero-lede">The Uzbekistan National Policy Competition is a non-profit, <span class="nowrap">student-run</span> tournament for high school students in Tashkent, held every Sunday. The winning resolution is sent to the Oliy Majlis.</p>
+        <p class="hero-actions">
+          <a class="btn" href="#next">Register for Sunday</a>
+          <a class="hero-link" href="#how" data-goto="1.25">How a Sunday works</a>
+        </p>
+      </div>
+    </div>
+
+    <ol class="stepper" id="how" data-stepper>
+      <li class="step is-active" data-step="1">
+        <h2 class="step-h"><button type="button" class="step-btn" data-goto="1.25" aria-current="step"><span class="step-n"><span class="step-cap" aria-hidden="true"></span>1<span class="step-of"> of 5</span></span> <span class="step-title">500+ students engaged</span></button></h2>
+        <div class="step-body">
+          <p>UNPC has run every Sunday in Tashkent since 4&nbsp;October 2026. Each dot here is one of the more than 500&nbsp;students it has engaged so far.</p>
+        </div>
+        <div class="step-fig plate" aria-hidden="true"><canvas data-fig="1"></canvas></div>
+      </li>
+      <li class="step" data-step="2">
+        <h2 class="step-h"><button type="button" class="step-btn" data-goto="2.35"><span class="step-n"><span class="step-cap" aria-hidden="true"></span>2<span class="step-of"> of 5</span></span> <span class="step-title">Two teams to a room</span></button></h2>
+        <div class="step-body">
+          <p>Students are drawn into teams of 3 or 4 on the spot. Both teams in a room get the same real policy problem and one hour to prepare. Each team presents for 7&nbsp;minutes, then answers the judges’ questions for&nbsp;5.</p>
+        </div>
+        <div class="step-fig plate" aria-hidden="true"><canvas data-fig="2"></canvas></div>
+      </li>
+      <li class="step" data-step="3">
+        <h2 class="step-h"><button type="button" class="step-btn" data-goto="3.45"><span class="step-n"><span class="step-cap" aria-hidden="true"></span>3<span class="step-of"> of 5</span></span> <span class="step-title">Scored out of 100</span></button></h2>
+        <div class="step-body">
+          <p>Judges are local university professors. Each block of seats is one criterion on their score sheet, sized by its points.</p>
+          <ul class="legend">
+            <li><i class="k0" aria-hidden="true"></i><span>Understanding of the problem</span> <b>15</b></li>
+            <li><i class="k1" aria-hidden="true"></i><span>Quality of the solution</span> <b>20</b></li>
+            <li><i class="k2" aria-hidden="true"></i><span>Argument and evidence</span> <b>20</b></li>
+            <li><i class="k3" aria-hidden="true"></i><span>Answers to questions</span> <b>15</b></li>
+            <li><i class="k4" aria-hidden="true"></i><span>Communication and teamwork</span> <b>15</b></li>
+            <li><i class="k5" aria-hidden="true"></i><span>Written resolution</span> <b>15</b></li>
+          </ul>
+        </div>
+        <div class="step-fig plate" aria-hidden="true"><canvas data-fig="3"></canvas></div>
+      </li>
+      <li class="step" data-step="4">
+        <h2 class="step-h"><button type="button" class="step-btn" data-goto="4.65"><span class="step-n"><span class="step-cap" aria-hidden="true"></span>4<span class="step-of"> of 5</span></span> <span class="step-title">Then it goes on paper</span></button></h2>
+        <div class="step-body">
+          <p>After the questions, each team writes and hands in a short resolution: the policy, stated clearly, with the changes the judges’ questions led to.</p>
+        </div>
+        <div class="step-fig plate step-fig-sheet" aria-hidden="true"><canvas data-fig="4"></canvas></div>
+      </li>
+      <li class="step" data-step="5">
+        <h2 class="step-h"><button type="button" class="step-btn" data-goto="5.92"><span class="step-n"><span class="step-cap" aria-hidden="true"></span>5<span class="step-of"> of 5</span></span> <span class="step-title">The best goes to parliament</span></button></h2>
+        <div class="step-body">
+          <p>The winning resolution is sent to the Oliy Majlis, Uzbekistan’s parliament. After the first tournament it went to Bobur Bekmurodov, a member of the Legislative Chamber.</p>
+        </div>
+        <div class="step-fig plate" aria-hidden="true"><canvas data-fig="5"></canvas></div>
+      </li>
+    </ol>
+  </div>
+</section>
+<!-- /STORY -->
+
+<!-- HOME-SECTIONS -->
+<!-- Home sections (spec 6.0 to 6.5): preamble, articles, annex, record, signatories, support. Behaviour in assets/home.js. -->
+
+<section class="section home-sec preamble" id="so-far" aria-labelledby="preamble-title">
+  <div class="doc">
+    <div class="row pre-open">
+      <h2 class="m m-label" id="preamble-title">Preamble</h2>
+      <p class="b t-clause">The Uzbekistan National Policy Competition,</p>
+    </div>
+    <div class="clauses">
+      <div class="row clause">
+        <p class="m t-figure pre-fig" aria-hidden="true">500<span class="plus">+</span></p>
+        <p class="b t-clause"><i>Noting</i> that it has engaged more than 500&nbsp;students since it began in 2026,</p>
+        <p class="n">Students engaged, by UNPC’s own count.</p>
+      </div>
+      <div class="row clause">
+        <p class="m t-figure pre-fig" aria-hidden="true">100<span class="plus">+</span></p>
+        <p class="b t-clause"><i>Aware</i> that it is run by more than 100&nbsp;volunteer organizers,</p>
+        <p class="n">Also UNPC’s own count.</p>
+      </div>
+      <div class="row clause">
+        <p class="m t-figure pre-fig" aria-hidden="true">2</p>
+        <p class="b t-clause"><i>Welcoming</i> the Kazakhstan National Policy Competition, which a local organizer runs on the UNPC format, so that the competition now takes place in two countries,</p>
+        <p class="n">Uzbekistan and Kazakhstan.</p>
+      </div>
+      <div class="row clause">
+        <p class="b t-clause"><i>Recognizing</i> that its judges are local university professors, who score how students think, argue, speak and write,</p>
+      </div>
+      <div class="row clause">
+        <p class="b t-clause"><i>Having met</i> every Sunday in Tashkent since 4&nbsp;October 2026,</p>
+      </div>
+      <div class="row clause clause-last">
+        <p class="b t-clause"><i>Resolves</i> as follows:</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section home-sec format" id="format" aria-labelledby="format-title">
+  <div class="doc" data-format>
+    <div class="row sec-head">
+      <p class="m m-label">Articles</p>
+      <div class="b">
+        <h2 class="t-h2" id="format-title">The Sunday, in order</h2>
+        <p class="sec-sub">A tournament takes 124 to 139 minutes. The bar draws the day to scale and follows you down the page.</p>
+      </div>
+    </div>
+
+    <div class="daybar-band" data-daybar-band>
+      <div class="row">
+        <div class="b daybar" data-daybar role="img" aria-label="The day to scale, 124 to 139 minutes: welcome and guest speaker, 20 to 30 minutes; preparation, 60 minutes; presentations and questions, 24 minutes per room; written resolution, 5 to 10 minutes; award ceremony, 15 minutes.">
+          <p class="daybar-now" aria-hidden="true"><span class="daybar-name" data-day-name>Welcome and guest speaker</span><span class="daybar-dur" data-day-dur>20 to 30 minutes</span></p>
+          <div class="daybar-track" aria-hidden="true">
+            <span class="dseg is-now" data-dseg="0" style="--m: 30; --opt: 33.333%"></span>
+            <span class="dseg" data-dseg="1" style="--m: 60"></span>
+            <span class="dseg" data-dseg="2" style="--m: 24"></span>
+            <span class="dseg" data-dseg="3" style="--m: 10; --opt: 50%"></span>
+            <span class="dseg" data-dseg="4" style="--m: 15"></span>
+            <span class="daybar-head" data-day-head></span>
+          </div>
+          <div class="daybar-labels" aria-hidden="true">
+            <span style="--m: 30"><b>Welcome</b>20 to 30</span>
+            <span style="--m: 60"><b>Preparation</b>60</span>
+            <span style="--m: 24"><b>Presenting</b>24</span>
+            <span style="--m: 10"><b>Writing</b>5 to 10</span>
+            <span style="--m: 15"><b>Awards</b>15</span>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="deck-wrap">
-        <div class="deck" data-deck>
-          <article class="case" aria-labelledby="case-count">
-            <div class="case-meta">
-              <strong id="case-count" data-case-count>Case 1 of 4</strong>
-              <span>First tournament, 4 October 2026</span>
-            </div>
-            <div class="case-stack" aria-live="polite">
-              <div class="case-item is-current">
-                <p class="case-topic">National identity and values among young people in a globalized world</p>
-                <p class="case-q">How can Uzbekistan strengthen national identity and cultural values among young people without limiting their openness to global culture and international exchange?</p>
-              </div>
-              <div class="case-item">
-                <p class="case-topic">The Uzbek language, a foreign language and a practical skill</p>
-                <p class="case-q">How can an effective system be created so that young people, while keeping the Uzbek language and national identity, acquire at least one foreign language and one practical profession or professional skill?</p>
-              </div>
-              <div class="case-item">
-                <p class="case-topic">Young people’s responsibility for a healthy society</p>
-                <p class="case-q">Identify the social behavior or harmful habit that poses the greatest challenge to young people today, and propose a practical policy solution to address it.</p>
+    <ol class="articles" data-articles>
+      <li class="row art" data-from="0" data-to="30">
+        <p class="m art-num" aria-hidden="true">1</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 1. </span><i>Opens</i> with a welcome and a talk by a guest speaker.</p>
+          <p class="art-dur">20 to 30 minutes</p>
+        </div>
+        <p class="n">On 4&nbsp;October the guest was Bobur Bekmurodov, a member of the Legislative Chamber of the Oliy Majlis.</p>
+      </li>
+      <li class="row art" data-from="28" data-to="30">
+        <p class="m art-num" aria-hidden="true">2</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 2. </span><i>Draws</i> the students into teams of three or four on the spot, and puts two teams in each room on the same case.</p>
+        </div>
+        <p class="n">Teams are formed on the day.</p>
+      </li>
+      <li class="row art art-deck" data-from="30" data-to="90">
+        <p class="m art-num" aria-hidden="true">3</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 3. </span><i>Gives</i> each team one real policy problem and one hour to prepare, with an optional coffee break inside the hour.</p>
+          <p class="art-dur">60 minutes</p>
+        </div>
+        <p class="n">These are the four cases of the first tournament. The briefs were written in Uzbek; these are the English translations. None needed knowledge of tax, constitutional law or macroeconomics.</p>
+        <div class="bn deck-wrap">
+          <div class="deck" id="cases" data-deck>
+            <div class="deck-stack" data-deck-stack>
+              <article class="case-card is-top" data-case="0" data-pos="0" aria-labelledby="case-t-0">
+                <p class="case-head"><span>Case 1 of 4</span><span>4 October 2026</span></p>
+                <h3 class="case-title" id="case-t-0">National identity and values among young people in a globalized world</h3>
+                <div class="case-qs"><p class="case-q"><span class="q-open">“</span>How can Uzbekistan strengthen national identity and cultural values among young people without limiting their openness to global culture and international exchange?”</p></div>
+                
+              </article>
+              <article class="case-card" data-case="1" data-pos="1" aria-labelledby="case-t-1" aria-hidden="true">
+                <p class="case-head"><span>Case 2 of 4</span><span>4 October 2026</span></p>
+                <h3 class="case-title" id="case-t-1">The Uzbek language, a foreign language and a practical skill</h3>
+                <div class="case-qs"><p class="case-q"><span class="q-open">“</span>How can an effective system be created so that young people, while keeping the Uzbek language and national identity, acquire at least one foreign language and one practical profession or professional skill?”</p></div>
+                
+              </article>
+              <article class="case-card" data-case="2" data-pos="2" aria-labelledby="case-t-2" aria-hidden="true">
+                <p class="case-head"><span>Case 3 of 4</span><span>4 October 2026</span></p>
+                <h3 class="case-title" id="case-t-2">Young people’s responsibility for a healthy society</h3>
+                <div class="case-qs"><p class="case-q"><span class="q-open">“</span>Identify the social behavior or harmful habit that poses the greatest challenge to young people today, and propose a practical policy solution to address it.”</p></div>
                 <p class="case-note">Each team picks the habit it argues about.</p>
-              </div>
-              <div class="case-item">
-                <p class="case-topic">A young person’s own responsibility for national values</p>
-                <p class="case-q">Part one: in an increasingly globalized world, what responsibility does an individual young person have in preserving national culture, language, traditions and historical memory? Part two: how can the state encourage young people to preserve national values without forcing them to?</p>
+              </article>
+              <article class="case-card" data-case="3" data-pos="3" aria-labelledby="case-t-3" aria-hidden="true">
+                <p class="case-head"><span>Case 4 of 4</span><span>4 October 2026</span></p>
+                <h3 class="case-title" id="case-t-3">A young person’s own responsibility for national values</h3>
+                <div class="case-qs"><p class="case-q"><span class="q-open">“</span>Part one: in an increasingly globalized world, what responsibility does an individual young person have in preserving national culture, language, traditions and historical memory?</p><p class="case-q">Part two: how can the state encourage young people to preserve national values without forcing them to?”</p></div>
                 <p class="case-note">Teams answer both parts.</p>
+              </article>
+            </div>
+            <div class="deck-controls">
+              <div class="pips" role="group" aria-label="Show a case">
+                <button type="button" class="pip" data-pip="0" aria-pressed="true" aria-label="Case 1">1</button><button type="button" class="pip" data-pip="1" aria-pressed="false" aria-label="Case 2">2</button><button type="button" class="pip" data-pip="2" aria-pressed="false" aria-label="Case 3">3</button><button type="button" class="pip" data-pip="3" aria-pressed="false" aria-label="Case 4">4</button>
+              </div>
+              <button type="button" class="btn btn-quiet" data-draw>Draw another case</button>
+            </div>
+            <p class="sr-only" aria-live="polite" data-deck-status></p>
+            <div class="clock" data-clock-root>
+              <p class="clock-digits t-clock" role="timer" data-clock>60:00</p>
+              <p class="clock-label" data-clock-label aria-live="polite">Preparation time</p>
+              <div class="clock-actions">
+                <button type="button" class="btn btn-quiet" data-clock-toggle>Start the hour</button>
+                <button type="button" class="btn-link clock-reset" data-clock-reset hidden>Reset</button>
               </div>
             </div>
-            <div class="case-foot">
-              <div>
-                <span class="clock-label" data-clock-label>Preparation time</span>
-                <span class="clock" data-clock role="timer">60:00</span>
+          </div>
+        </div>
+      </li>
+      <li class="row art" data-from="90" data-to="114">
+        <p class="m art-num" aria-hidden="true">4</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 4. </span><i>Hears</i> each team present for 7&nbsp;minutes, then answer the judges’ questions for&nbsp;5.</p>
+          <p class="art-dur">24 minutes per room</p>
+          <div class="roombar" role="img" aria-label="One room, 24 minutes: Team A presents for 7 minutes, then answers questions for 5; Team B presents for 7 minutes, then answers questions for 5.">
+            <div class="rb-track" aria-hidden="true"><i class="rb-a" style="--m: 7"></i><i class="rb-q" style="--m: 5"></i><i class="rb-b" style="--m: 7"></i><i class="rb-q" style="--m: 5"></i></div>
+            <div class="rb-labels" aria-hidden="true">
+              <span class="rb-a" style="--m: 7"><b>Team A presents</b><em>7<span class="rb-min"> minutes</span></em></span>
+              <span class="rb-q" style="--m: 5"><b>Questions</b><em>5<span class="rb-min"> minutes</span></em></span>
+              <span class="rb-b" style="--m: 7"><b>Team B presents</b><em>7<span class="rb-min"> minutes</span></em></span>
+              <span class="rb-q" style="--m: 5"><b>Questions</b><em>5<span class="rb-min"> minutes</span></em></span>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="row art" data-from="114" data-to="124">
+        <p class="m art-num" aria-hidden="true">5</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 5. </span><i>Requires</i> each team to write and hand in a short written resolution.</p>
+          <p class="art-dur">5 to 10 minutes</p>
+        </div>
+        <p class="n">It counts for 15 of the 100 points.</p>
+      </li>
+      <li class="row art" data-from="124" data-to="139">
+        <p class="m art-num" aria-hidden="true">6</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 6. </span><i>Awards</i> certificates and prizes to the winning team and to the best speaker of each room.</p>
+          <p class="art-dur">15 minutes</p>
+        </div>
+      </li>
+      <li class="row art" data-after>
+        <p class="m art-num" aria-hidden="true">7</p>
+        <div class="b">
+          <p class="t-clause"><span class="sr-only">Article 7. </span><i>Sends</i> the winning resolution to the Oliy Majlis.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section home-sec judging" id="judging" aria-labelledby="judging-title">
+  <div class="doc">
+    <div class="row sec-head">
+      <p class="m m-label">Annex A</p>
+      <div class="b">
+        <h2 class="t-h2" id="judging-title">How a room is scored</h2>
+        <p class="sec-sub">Each team is scored out of 100 on six criteria. Move the marks to score two teams; the sheet applies the real tie-break.</p>
+      </div>
+      <div class="n sec-notes">
+        <p>If the totals tie, the higher score for quality of the solution wins.</p>
+        <p>The best speaker is picked separately and can come from the losing team.</p>
+      </div>
+    </div>
+    <div class="row sheet-row">
+      <div class="bn">
+        <form class="sheet" data-sheet aria-label="Score sheet" onsubmit="return false">
+          <div class="sheet-top">
+            <p class="sheet-title">Score sheet</p>
+            <p class="sheet-blank" aria-hidden="true"><span>Room</span><i></i></p>
+            <p class="sheet-blank" aria-hidden="true"><span>Judge</span><i></i></p>
+          </div>
+          <div class="sheet-head" aria-hidden="true">
+            <span>Criterion</span><span class="th-a">Team A</span><span class="th-b">Team B</span>
+          </div>
+          <div class="sheet-rows">
+            <div class="crit" data-crit="0">
+              <div class="crit-info">
+                <p class="crit-name">Understanding of the problem</p>
+                <p class="crit-meta"><span class="crit-max">out of 15</span></p>
+                <p class="crit-desc">Names the real cause and who is affected, and works from the case.</p>
               </div>
-              <div class="case-actions">
-                <button class="btn btn-line" type="button" data-clock-toggle>Start the hour</button>
-                <button class="btn-text" type="button" data-clock-reset hidden>Reset</button>
-                <button class="btn-text" type="button" data-draw>Draw another case</button>
+              <div class="cell cell-a">
+                <span class="cell-team" aria-hidden="true">Team A</span>
+                <span class="cell-val" data-val aria-hidden="true">12</span>
+                <span class="scale" style="--max: 15; --v: 12">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="12" data-team="A" data-i="0" aria-label="Team A, understanding of the problem, out of 15">
+                </span>
+              </div>
+              <div class="cell cell-b">
+                <span class="cell-team" aria-hidden="true">Team B</span>
+                <span class="cell-val" data-val aria-hidden="true">13</span>
+                <span class="scale" style="--max: 15; --v: 13">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="13" data-team="B" data-i="0" aria-label="Team B, understanding of the problem, out of 15">
+                </span>
               </div>
             </div>
-          </article>
-        </div>
-        <p class="deck-note">The four cases from the first tournament, translated from Uzbek. None of them needed knowledge of tax, constitutional law or macroeconomics.</p>
+            <div class="crit" data-crit="1">
+              <div class="crit-info">
+                <p class="crit-name">Quality of the solution</p>
+                <p class="crit-meta"><span class="crit-max">out of 20</span><span class="tie-tag" data-tie-tag>Decides the tie</span></p>
+                <p class="crit-desc">Specific and realistic for Uzbekistan, says who does what, and answers every part of the question.</p>
+              </div>
+              <div class="cell cell-a">
+                <span class="cell-team" aria-hidden="true">Team A</span>
+                <span class="cell-val" data-val aria-hidden="true">17</span>
+                <span class="scale" style="--max: 20; --v: 17">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="20" step="1" value="17" data-team="A" data-i="1" aria-label="Team A, quality of the solution, out of 20">
+                </span>
+              </div>
+              <div class="cell cell-b">
+                <span class="cell-team" aria-hidden="true">Team B</span>
+                <span class="cell-val" data-val aria-hidden="true">15</span>
+                <span class="scale" style="--max: 20; --v: 15">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="20" step="1" value="15" data-team="B" data-i="1" aria-label="Team B, quality of the solution, out of 20">
+                </span>
+              </div>
+            </div>
+            <div class="crit" data-crit="2">
+              <div class="crit-info">
+                <p class="crit-name">Argument and evidence</p>
+                <p class="crit-meta"><span class="crit-max">out of 20</span></p>
+                <p class="crit-desc">Every claim has a reason, backed by examples, data or cases from Uzbekistan or elsewhere.</p>
+              </div>
+              <div class="cell cell-a">
+                <span class="cell-team" aria-hidden="true">Team A</span>
+                <span class="cell-val" data-val aria-hidden="true">15</span>
+                <span class="scale" style="--max: 20; --v: 15">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="20" step="1" value="15" data-team="A" data-i="2" aria-label="Team A, argument and evidence, out of 20">
+                </span>
+              </div>
+              <div class="cell cell-b">
+                <span class="cell-team" aria-hidden="true">Team B</span>
+                <span class="cell-val" data-val aria-hidden="true">16</span>
+                <span class="scale" style="--max: 20; --v: 16">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="20" step="1" value="16" data-team="B" data-i="2" aria-label="Team B, argument and evidence, out of 20">
+                </span>
+              </div>
+            </div>
+            <div class="crit" data-crit="3">
+              <div class="crit-info">
+                <p class="crit-name">Answers to questions</p>
+                <p class="crit-meta"><span class="crit-max">out of 15</span></p>
+                <p class="crit-desc">Answers the question asked, admits where the proposal is weak, and adjusts without losing its line.</p>
+              </div>
+              <div class="cell cell-a">
+                <span class="cell-team" aria-hidden="true">Team A</span>
+                <span class="cell-val" data-val aria-hidden="true">11</span>
+                <span class="scale" style="--max: 15; --v: 11">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="11" data-team="A" data-i="3" aria-label="Team A, answers to questions, out of 15">
+                </span>
+              </div>
+              <div class="cell cell-b">
+                <span class="cell-team" aria-hidden="true">Team B</span>
+                <span class="cell-val" data-val aria-hidden="true">12</span>
+                <span class="scale" style="--max: 15; --v: 12">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="12" data-team="B" data-i="3" aria-label="Team B, answers to questions, out of 15">
+                </span>
+              </div>
+            </div>
+            <div class="crit" data-crit="4">
+              <div class="crit-info">
+                <p class="crit-name">Communication and teamwork</p>
+                <p class="crit-meta"><span class="crit-max">out of 15</span></p>
+                <p class="crit-desc">Clear and on time, every member speaks, and listens to the other side.</p>
+              </div>
+              <div class="cell cell-a">
+                <span class="cell-team" aria-hidden="true">Team A</span>
+                <span class="cell-val" data-val aria-hidden="true">12</span>
+                <span class="scale" style="--max: 15; --v: 12">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="12" data-team="A" data-i="4" aria-label="Team A, communication and teamwork, out of 15">
+                </span>
+              </div>
+              <div class="cell cell-b">
+                <span class="cell-team" aria-hidden="true">Team B</span>
+                <span class="cell-val" data-val aria-hidden="true">11</span>
+                <span class="scale" style="--max: 15; --v: 11">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="11" data-team="B" data-i="4" aria-label="Team B, communication and teamwork, out of 15">
+                </span>
+              </div>
+            </div>
+            <div class="crit" data-crit="5">
+              <div class="crit-info">
+                <p class="crit-name">Written resolution</p>
+                <p class="crit-meta"><span class="crit-max">out of 15</span></p>
+                <p class="crit-desc">States the policy clearly, matches the presentation, and includes changes the questions led to.</p>
+              </div>
+              <div class="cell cell-a">
+                <span class="cell-team" aria-hidden="true">Team A</span>
+                <span class="cell-val" data-val aria-hidden="true">11</span>
+                <span class="scale" style="--max: 15; --v: 11">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="11" data-team="A" data-i="5" aria-label="Team A, written resolution, out of 15">
+                </span>
+              </div>
+              <div class="cell cell-b">
+                <span class="cell-team" aria-hidden="true">Team B</span>
+                <span class="cell-val" data-val aria-hidden="true">11</span>
+                <span class="scale" style="--max: 15; --v: 11">
+                  <span class="ticks" aria-hidden="true"></span><span class="scale-fill" aria-hidden="true"></span>
+                  <input type="range" min="0" max="15" step="1" value="11" data-team="B" data-i="5" aria-label="Team B, written resolution, out of 15">
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="sheet-total">
+            <p class="st-label">Total, out of 100</p>
+            <p class="st-cell st-a"><span class="cell-team" aria-hidden="true">Team A</span><span class="st-num"><span class="sr-only">Team A total: </span><span data-total="A">78</span><svg class="ring" viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M86 9C60 1 18 7 9 30c-8 22 26 34 56 32 30-2 50-14 47-32C109 6 80 3 58 6"/></svg></span></p>
+            <p class="st-cell st-b"><span class="cell-team" aria-hidden="true">Team B</span><span class="st-num"><span class="sr-only">Team B total: </span><span data-total="B">78</span><svg class="ring" viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M86 9C60 1 18 7 9 30c-8 22 26 34 56 32 30-2 50-14 47-32C109 6 80 3 58 6"/></svg></span></p>
+          </div>
+          <div class="sheet-foot">
+            <p class="verdict" data-verdict aria-live="polite">Tied at 78. Team A wins on quality of the solution, 17 to 15.</p>
+            <button type="button" class="btn btn-quiet btn-sm" data-sheet-reset>Back to the example</button>
+          </div>
+        </form>
+        <p class="sheet-note">Judges score how students think, argue, speak and write. They do not rule on whether a technical proposal is correct, so a judge from any field can score a room.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="lead-photo" aria-label="UNPC so far">
-    <div class="wrap">
-      <figure>
-        <div class="photo" data-slot>
-          <img src="photos/hero.jpg" alt="Teams preparing at the first UNPC tournament" decoding="async">
-          <span class="photo-hint"><strong>Main photo</strong><span>A wide shot of the hall while the teams prepare.</span><code>photos/hero.jpg</code></span>
-        </div>
-        <figcaption class="caption">The first tournament, Sodiq School, Tashkent, 4 October 2026.</figcaption>
-      </figure>
-      <p class="figures-lead">Since the first tournament on 4 October 2026</p>
-      <dl class="figures">
-        <div class="figure"><dt>500+</dt><dd>students engaged in the competition</dd></div>
-        <div class="figure"><dt>100+</dt><dd>volunteer organizers</dd></div>
-        <div class="figure"><dt>2</dt><dd>countries, with the Kazakhstan National Policy Competition</dd></div>
-      </dl>
+<section class="section home-sec first" id="first" aria-labelledby="first-title">
+  <div class="doc">
+    <div class="row sec-head">
+      <p class="m m-label">Record</p>
+      <div class="b">
+        <h2 class="t-h2" id="first-title">The first tournament</h2>
+        <p class="sec-sub">Sunday 4&nbsp;October 2026, at Sodiq School in Tashkent.</p>
+      </div>
     </div>
-  </section>
+    <dl class="record">
+      <div class="row"><dt class="m">Venue</dt><dd class="b t-clause">Sodiq School, Tashkent</dd></div>
+      <div class="row"><dt class="m">Guest</dt><dd class="b t-clause">Bobur Bekmurodov, a member of the Legislative Chamber of the Oliy Majlis</dd></div>
+      <div class="row"><dt class="m">Cases</dt><dd class="b t-clause">Four, about young people, language, culture and social habits. A member of the Legislative Chamber gave the topics.</dd></div>
+      <div class="row"><dt class="m">Winning team</dt><dd class="b t-clause">Young Policy Leaders</dd></div>
+      <div class="row"><dt class="m">Prizes</dt><dd class="b t-clause">Certificates for the winning team and the best speaker, and a <span class="nowrap">one-year</span> subscription to The Diplomat for the winners</dd></div>
+      <div class="row"><dt class="m">Coffee break</dt><dd class="b t-clause">Free</dd></div>
+      <div class="row"><dt class="m">Afterwards</dt><dd class="b t-clause">The winning resolution was sent to Bobur Bekmurodov</dd></div>
+    </dl>
+  </div>
 
+  <div class="wrap gallery" data-gallery>
+    <div class="g-row">
+        <figure class="slot shot shot-main" style="--r: 2.333">
+          <div class="plate" data-slot style="--ratio: 21 / 9">
+            <svg class="plan plan-wide" viewBox="235 105 790 339" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><path class="ln" d="M146 88H214"/><rect class="ln" x="123" y="130" width="34" height="24" rx="5"/><circle class="ta" cx="131" cy="118" r="6"/><circle class="ta" cx="149" cy="118" r="6"/><circle class="ta" cx="131" cy="166" r="6"/><circle class="ta" cx="149" cy="166" r="6"/><rect class="ln" x="203" y="130" width="34" height="24" rx="5"/><circle class="tb" cx="211" cy="118" r="6"/><circle class="tb" cx="229" cy="118" r="6"/><circle class="tb" cx="211" cy="166" r="6"/><circle class="tb" cx="229" cy="166" r="6"/><path class="ln" d="M326 88H394"/><rect class="ln" x="303" y="130" width="34" height="24" rx="5"/><circle class="ta" cx="311" cy="118" r="6"/><circle class="ta" cx="329" cy="118" r="6"/><circle class="ta" cx="320" cy="166" r="6"/><rect class="ln" x="383" y="130" width="34" height="24" rx="5"/><circle class="tb" cx="391" cy="118" r="6"/><circle class="tb" cx="409" cy="118" r="6"/><circle class="tb" cx="400" cy="166" r="6"/><path class="ln" d="M506 88H574"/><rect class="ln" x="483" y="130" width="34" height="24" rx="5"/><circle class="ta" cx="491" cy="118" r="6"/><circle class="ta" cx="509" cy="118" r="6"/><circle class="ta" cx="491" cy="166" r="6"/><circle class="ta" cx="509" cy="166" r="6"/><rect class="ln" x="563" y="130" width="34" height="24" rx="5"/><circle class="tb" cx="571" cy="118" r="6"/><circle class="tb" cx="589" cy="118" r="6"/><circle class="tb" cx="571" cy="166" r="6"/><circle class="tb" cx="589" cy="166" r="6"/><path class="ln" d="M686 88H754"/><rect class="ln" x="663" y="130" width="34" height="24" rx="5"/><circle class="ta" cx="671" cy="118" r="6"/><circle class="ta" cx="689" cy="118" r="6"/><circle class="ta" cx="671" cy="166" r="6"/><circle class="ta" cx="689" cy="166" r="6"/><rect class="ln" x="743" y="130" width="34" height="24" rx="5"/><circle class="tb" cx="751" cy="118" r="6"/><circle class="tb" cx="769" cy="118" r="6"/><circle class="tb" cx="751" cy="166" r="6"/><circle class="tb" cx="769" cy="166" r="6"/><path class="ln" d="M866 88H934"/><rect class="ln" x="843" y="130" width="34" height="24" rx="5"/><circle class="ta" cx="851" cy="118" r="6"/><circle class="ta" cx="869" cy="118" r="6"/><circle class="ta" cx="851" cy="166" r="6"/><circle class="ta" cx="869" cy="166" r="6"/><rect class="ln" x="923" y="130" width="34" height="24" rx="5"/><circle class="tb" cx="931" cy="118" r="6"/><circle class="tb" cx="949" cy="118" r="6"/><circle class="tb" cx="940" cy="166" r="6"/><path class="ln" d="M1046 88H1114"/><rect class="ln" x="1023" y="130" width="34" height="24" rx="5"/><circle class="ta" cx="1031" cy="118" r="6"/><circle class="ta" cx="1049" cy="118" r="6"/><circle class="ta" cx="1031" cy="166" r="6"/><circle class="ta" cx="1049" cy="166" r="6"/><rect class="ln" x="1103" y="130" width="34" height="24" rx="5"/><circle class="tb" cx="1111" cy="118" r="6"/><circle class="tb" cx="1129" cy="118" r="6"/><circle class="tb" cx="1111" cy="166" r="6"/><circle class="tb" cx="1129" cy="166" r="6"/><path class="ln" d="M146 228H214"/><rect class="ln" x="123" y="270" width="34" height="24" rx="5"/><circle class="ta" cx="131" cy="258" r="6"/><circle class="ta" cx="149" cy="258" r="6"/><circle class="ta" cx="140" cy="306" r="6"/><rect class="ln" x="203" y="270" width="34" height="24" rx="5"/><circle class="tb" cx="211" cy="258" r="6"/><circle class="tb" cx="229" cy="258" r="6"/><circle class="tb" cx="211" cy="306" r="6"/><circle class="tb" cx="229" cy="306" r="6"/><path class="ln" d="M326 228H394"/><rect class="ln" x="303" y="270" width="34" height="24" rx="5"/><circle class="ta" cx="311" cy="258" r="6"/><circle class="ta" cx="329" cy="258" r="6"/><circle class="ta" cx="311" cy="306" r="6"/><circle class="ta" cx="329" cy="306" r="6"/><rect class="ln" x="383" y="270" width="34" height="24" rx="5"/><circle class="tb" cx="391" cy="258" r="6"/><circle class="tb" cx="409" cy="258" r="6"/><circle class="tb" cx="391" cy="306" r="6"/><circle class="tb" cx="409" cy="306" r="6"/><path class="ln" d="M506 228H574"/><rect class="ln" x="483" y="270" width="34" height="24" rx="5"/><circle class="ta" cx="491" cy="258" r="6"/><circle class="ta" cx="509" cy="258" r="6"/><circle class="ta" cx="491" cy="306" r="6"/><circle class="ta" cx="509" cy="306" r="6"/><rect class="ln" x="563" y="270" width="34" height="24" rx="5"/><circle class="tb" cx="571" cy="258" r="6"/><circle class="tb" cx="589" cy="258" r="6"/><circle class="tb" cx="571" cy="306" r="6"/><circle class="tb" cx="589" cy="306" r="6"/><path class="ln" d="M686 228H754"/><rect class="ln" x="663" y="270" width="34" height="24" rx="5"/><circle class="ta" cx="671" cy="258" r="6"/><circle class="ta" cx="689" cy="258" r="6"/><circle class="ta" cx="671" cy="306" r="6"/><circle class="ta" cx="689" cy="306" r="6"/><rect class="ln" x="743" y="270" width="34" height="24" rx="5"/><circle class="tb" cx="751" cy="258" r="6"/><circle class="tb" cx="769" cy="258" r="6"/><circle class="tb" cx="760" cy="306" r="6"/><path class="ln" d="M866 228H934"/><rect class="ln" x="843" y="270" width="34" height="24" rx="5"/><circle class="ta" cx="851" cy="258" r="6"/><circle class="ta" cx="869" cy="258" r="6"/><circle class="ta" cx="851" cy="306" r="6"/><circle class="ta" cx="869" cy="306" r="6"/><rect class="ln" x="923" y="270" width="34" height="24" rx="5"/><circle class="tb" cx="931" cy="258" r="6"/><circle class="tb" cx="949" cy="258" r="6"/><circle class="tb" cx="940" cy="306" r="6"/><path class="ln" d="M1046 228H1114"/><rect class="ln" x="1023" y="270" width="34" height="24" rx="5"/><circle class="ta" cx="1031" cy="258" r="6"/><circle class="ta" cx="1049" cy="258" r="6"/><circle class="ta" cx="1031" cy="306" r="6"/><circle class="ta" cx="1049" cy="306" r="6"/><rect class="ln" x="1103" y="270" width="34" height="24" rx="5"/><circle class="tb" cx="1111" cy="258" r="6"/><circle class="tb" cx="1129" cy="258" r="6"/><circle class="tb" cx="1111" cy="306" r="6"/><circle class="tb" cx="1129" cy="306" r="6"/><path class="ln" d="M146 368H214"/><rect class="ln" x="123" y="410" width="34" height="24" rx="5"/><circle class="ta" cx="131" cy="398" r="6"/><circle class="ta" cx="149" cy="398" r="6"/><circle class="ta" cx="131" cy="446" r="6"/><circle class="ta" cx="149" cy="446" r="6"/><rect class="ln" x="203" y="410" width="34" height="24" rx="5"/><circle class="tb" cx="211" cy="398" r="6"/><circle class="tb" cx="229" cy="398" r="6"/><circle class="tb" cx="211" cy="446" r="6"/><circle class="tb" cx="229" cy="446" r="6"/><path class="ln" d="M326 368H394"/><rect class="ln" x="303" y="410" width="34" height="24" rx="5"/><circle class="ta" cx="311" cy="398" r="6"/><circle class="ta" cx="329" cy="398" r="6"/><circle class="ta" cx="311" cy="446" r="6"/><circle class="ta" cx="329" cy="446" r="6"/><rect class="ln" x="383" y="410" width="34" height="24" rx="5"/><circle class="tb" cx="391" cy="398" r="6"/><circle class="tb" cx="409" cy="398" r="6"/><circle class="tb" cx="400" cy="446" r="6"/><path class="ln" d="M506 368H574"/><rect class="ln" x="483" y="410" width="34" height="24" rx="5"/><circle class="ta" cx="491" cy="398" r="6"/><circle class="ta" cx="509" cy="398" r="6"/><circle class="ta" cx="491" cy="446" r="6"/><circle class="ta" cx="509" cy="446" r="6"/><rect class="ln" x="563" y="410" width="34" height="24" rx="5"/><circle class="tb" cx="571" cy="398" r="6"/><circle class="tb" cx="589" cy="398" r="6"/><circle class="tb" cx="580" cy="446" r="6"/><path class="ln" d="M686 368H754"/><rect class="ln" x="663" y="410" width="34" height="24" rx="5"/><circle class="ta" cx="671" cy="398" r="6"/><circle class="ta" cx="689" cy="398" r="6"/><circle class="ta" cx="671" cy="446" r="6"/><circle class="ta" cx="689" cy="446" r="6"/><rect class="ln" x="743" y="410" width="34" height="24" rx="5"/><circle class="tb" cx="751" cy="398" r="6"/><circle class="tb" cx="769" cy="398" r="6"/><circle class="tb" cx="760" cy="446" r="6"/><path class="ln" d="M866 368H934"/><rect class="ln" x="843" y="410" width="34" height="24" rx="5"/><circle class="ta" cx="851" cy="398" r="6"/><circle class="ta" cx="869" cy="398" r="6"/><circle class="ta" cx="860" cy="446" r="6"/><rect class="ln" x="923" y="410" width="34" height="24" rx="5"/><circle class="tb" cx="931" cy="398" r="6"/><circle class="tb" cx="949" cy="398" r="6"/><circle class="tb" cx="940" cy="446" r="6"/><path class="ln" d="M1046 368H1114"/><rect class="ln" x="1023" y="410" width="34" height="24" rx="5"/><circle class="ta" cx="1031" cy="398" r="6"/><circle class="ta" cx="1049" cy="398" r="6"/><circle class="ta" cx="1040" cy="446" r="6"/><rect class="ln" x="1103" y="410" width="34" height="24" rx="5"/><circle class="tb" cx="1111" cy="398" r="6"/><circle class="tb" cx="1129" cy="398" r="6"/><circle class="tb" cx="1120" cy="446" r="6"/></svg>
+            <img src="photos/hero.jpg" alt="" data-alt="Students at the first UNPC tournament at Sodiq School" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>Sodiq School, 4&nbsp;October 2026.</b> The first tournament.</figcaption>
+        </figure>
+    </div>
+    <div class="g-row">
+        <figure class="slot shot" style="--r: 2">
+          <div class="plate" data-slot style="--ratio: 2 / 1">
+            <svg class="plan" viewBox="0 0 520 260" aria-hidden="true" focusable="false">
+<rect class="ln" x="228" y="58" width="64" height="16" rx="4"/><circle class="jd" cx="260" cy="44" r="7.5"/>
+<path class="ln soft" d="M196 98Q260 114 324 98"/><circle class="open" cx="91" cy="134" r="6.5"/><circle class="open" cx="117" cy="134" r="6.5"/><circle class="open" cx="143" cy="134" r="6.5"/><circle class="open" cx="169" cy="134" r="6.5"/><circle class="open" cx="195" cy="134" r="6.5"/><circle class="open" cx="221" cy="134" r="6.5"/><circle class="open" cx="247" cy="134" r="6.5"/><circle class="open" cx="273" cy="134" r="6.5"/><circle class="open" cx="299" cy="134" r="6.5"/><circle class="open" cx="325" cy="134" r="6.5"/><circle class="open" cx="351" cy="134" r="6.5"/><circle class="open" cx="377" cy="134" r="6.5"/><circle class="open" cx="403" cy="134" r="6.5"/><circle class="open" cx="429" cy="134" r="6.5"/><circle class="open" cx="91" cy="162" r="6.5"/><circle class="open" cx="117" cy="162" r="6.5"/><circle class="open" cx="143" cy="162" r="6.5"/><circle class="open" cx="169" cy="162" r="6.5"/><circle class="open" cx="195" cy="162" r="6.5"/><circle class="open" cx="221" cy="162" r="6.5"/><circle class="open" cx="247" cy="162" r="6.5"/><circle class="open" cx="273" cy="162" r="6.5"/><circle class="open" cx="299" cy="162" r="6.5"/><circle class="open" cx="325" cy="162" r="6.5"/><circle class="open" cx="351" cy="162" r="6.5"/><circle class="open" cx="377" cy="162" r="6.5"/><circle class="open" cx="403" cy="162" r="6.5"/><circle class="open" cx="429" cy="162" r="6.5"/><circle class="open" cx="91" cy="190" r="6.5"/><circle class="open" cx="117" cy="190" r="6.5"/><circle class="open" cx="143" cy="190" r="6.5"/><circle class="open" cx="169" cy="190" r="6.5"/><circle class="open" cx="195" cy="190" r="6.5"/><circle class="open" cx="221" cy="190" r="6.5"/><circle class="open" cx="247" cy="190" r="6.5"/><circle class="open" cx="273" cy="190" r="6.5"/><circle class="open" cx="299" cy="190" r="6.5"/><circle class="open" cx="325" cy="190" r="6.5"/><circle class="open" cx="351" cy="190" r="6.5"/><circle class="open" cx="377" cy="190" r="6.5"/><circle class="open" cx="403" cy="190" r="6.5"/><circle class="open" cx="429" cy="190" r="6.5"/><circle class="open" cx="91" cy="218" r="6.5"/><circle class="open" cx="117" cy="218" r="6.5"/><circle class="open" cx="143" cy="218" r="6.5"/><circle class="open" cx="169" cy="218" r="6.5"/><circle class="open" cx="195" cy="218" r="6.5"/><circle class="open" cx="221" cy="218" r="6.5"/><circle class="open" cx="247" cy="218" r="6.5"/><circle class="open" cx="273" cy="218" r="6.5"/><circle class="open" cx="299" cy="218" r="6.5"/><circle class="open" cx="325" cy="218" r="6.5"/><circle class="open" cx="351" cy="218" r="6.5"/><circle class="open" cx="377" cy="218" r="6.5"/><circle class="open" cx="403" cy="218" r="6.5"/><circle class="open" cx="429" cy="218" r="6.5"/></svg>
+            <img src="photos/first-tournament/guest.jpg" alt="" data-alt="Bobur Bekmurodov speaking to the students" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>Our guest.</b> Bobur Bekmurodov speaking to the students.</figcaption>
+        </figure>
+        <figure class="slot shot" style="--r: 1.333">
+          <div class="plate" data-slot style="--ratio: 4 / 3">
+            <svg class="plan" viewBox="0 0 360 270" aria-hidden="true" focusable="false"><g transform="translate(-20 6)">
+<rect class="ln" x="70" y="58" width="260" height="58" rx="6"/><circle class="jd" cx="200" cy="86" r="7.5"/>
+<g transform="translate(176 146)">
+  <rect class="ln" x="10" y="6" width="48" height="32" rx="2" transform="rotate(7 34 22)" style="fill: var(--wash)"/>
+  <rect class="ln" x="4" y="3" width="48" height="32" rx="2" transform="rotate(-5 28 19)" style="fill: var(--wash)"/>
+  <rect class="ln" x="0" y="0" width="48" height="32" rx="2" style="fill: var(--wash)"/>
+  <path class="rule" d="M6 10h36"/>
+</g>
+<path class="ln soft" d="M90 214H310M110 236H290"/>
+</g></svg>
+            <img src="photos/first-tournament/ceremony.jpg" alt="" data-alt="The award ceremony" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>Award ceremony.</b> Certificates for the winners and the best speaker.</figcaption>
+        </figure>
+        <figure class="slot shot shot-winners" style="--r: 1.333">
+          <div class="plate" data-slot style="--ratio: 4 / 3">
+            <div class="winners-type" aria-hidden="true"><span class="wt-name">Young Policy Leaders</span><span class="wt-rule"></span></div>
+            <img src="photos/first-tournament/winners.jpg" alt="" data-alt="Young Policy Leaders with their certificates" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>The winners.</b> Young Policy Leaders, with their certificates and a year of The Diplomat.</figcaption>
+        </figure>
+    </div>
+    <div class="g-row">
+        <figure class="slot shot" style="--r: 1.5">
+          <div class="plate" data-slot style="--ratio: 3 / 2">
+            <svg class="plan" viewBox="0 -11 528 352" aria-hidden="true" focusable="false"><g transform="translate(64 15)">
+<rect class="ln" x="62" y="92" width="112" height="96" rx="14"/><rect class="ln" x="226" y="92" width="112" height="96" rx="14"/>
+<rect class="ln soft" x="96" y="122" width="26" height="34" rx="2"/><rect class="ln soft" x="128" y="128" width="26" height="34" rx="2"/>
+<rect class="ln soft" x="258" y="126" width="26" height="34" rx="2"/><rect class="ln soft" x="290" y="120" width="26" height="34" rx="2"/>
+<circle class="ta" cx="92" cy="76" r="7.5"/><circle class="ta" cx="144" cy="76" r="7.5"/><circle class="ta" cx="92" cy="204" r="7.5"/><circle class="ta" cx="144" cy="204" r="7.5"/>
+<circle class="tb" cx="256" cy="76" r="7.5"/><circle class="tb" cx="308" cy="76" r="7.5"/><circle class="tb" cx="282" cy="204" r="7.5"/>
+<path class="ln" d="M188 240h24v14a12 12 0 0 1-24 0zM212 244a6 6 0 0 1 0 12"/><path class="ln soft" d="M180 272h40"/>
+</g></svg>
+            <img src="photos/first-tournament/preparation.jpg" alt="" data-alt="Teams working on their cases during the hour of preparation" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>Preparation.</b> Two teams on the same case for one hour. The coffee break was free.</figcaption>
+        </figure>
+        <figure class="slot shot pair" style="--r: 1">
+          <div class="plate" data-slot style="--ratio: 1 / 1">
+            <svg class="plan" viewBox="0 0 336 336" aria-hidden="true" focusable="false"><g transform="translate(-32 18)">
+<path class="ln" d="M110 40H290"/>
+<circle class="ta" cx="164" cy="96" r="7.5"/><circle class="ta" cx="188" cy="96" r="7.5"/><circle class="ta" cx="212" cy="96" r="7.5"/><circle class="ta" cx="236" cy="96" r="7.5"/>
+<circle class="tb" cx="84" cy="128" r="7.5"/><circle class="tb" cx="84" cy="154" r="7.5"/><circle class="tb" cx="84" cy="180" r="7.5"/>
+<rect class="ln" x="128" y="214" width="144" height="22" rx="4"/>
+</g></svg>
+            <img src="photos/first-tournament/presenting.jpg" alt="" data-alt="A team presenting its policy" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>Presenting.</b> Seven minutes at the front of the room.</figcaption>
+        </figure>
+        <figure class="slot shot pair" style="--r: 1">
+          <div class="plate" data-slot style="--ratio: 1 / 1">
+            <svg class="plan" viewBox="0 0 336 336" aria-hidden="true" focusable="false"><g transform="translate(-32 10)">
+<circle class="ta" cx="164" cy="80" r="7.5"/><circle class="ta" cx="188" cy="80" r="7.5"/><circle class="ta" cx="212" cy="80" r="7.5"/><circle class="ta" cx="236" cy="80" r="7.5"/>
+<path class="ln soft" d="M176 166q24-16 48 0M168 150q32-22 64 0M160 134q40-28 80 0"/>
+<rect class="ln" x="128" y="196" width="144" height="22" rx="4"/>
+</g></svg>
+            <img src="photos/first-tournament/questions.jpg" alt="" data-alt="Judges asking a team questions" loading="lazy" decoding="async">
+          </div>
+          <figcaption><b>Questions.</b> Five minutes of questions from the judges.</figcaption>
+        </figure>
+    </div>
+  </div>
 
-  <section class="section band-dark" id="format" aria-labelledby="format-title">
-    <div class="wrap" data-day>
-      <div class="head">
-        <h2 id="format-title">A tournament takes a little over two hours.</h2>
-        <p class="lede">From the welcome to the last certificate it runs 124 to 139 minutes, and almost half of that is the hour of preparation.</p>
-      </div>
-
-      <div class="day-chart">
-        <div class="dayline" role="group" aria-label="The tournament day, drawn to scale">
-          <button type="button" class="seg phase-welcome" data-phase="welcome" style="--units: 30; --min: 20; --extra: 10" aria-pressed="false" aria-label="Welcome and guest speaker, 20 to 30 minutes"><span class="seg-fill"></span><span class="seg-extra"></span><span class="seg-label">Welcome</span></button>
-          <button type="button" class="seg phase-prep" data-phase="prep" style="--units: 60; --min: 60" aria-pressed="false" aria-label="Preparation, 60 minutes"><span class="seg-fill"></span><span class="seg-label keep">Preparation, 60 min</span></button>
-          <button type="button" class="seg phase-talk" data-phase="talk" style="--units: 24; --min: 24" aria-pressed="false" aria-label="Presentations and questions, 24 minutes per room"><span class="seg-fill"></span><span class="seg-label">Presentations</span></button>
-          <button type="button" class="seg phase-write" data-phase="write" style="--units: 10; --min: 5; --extra: 5" aria-pressed="false" aria-label="Written resolution, 5 to 10 minutes"><span class="seg-fill"></span><span class="seg-extra"></span></button>
-          <button type="button" class="seg phase-awards" data-phase="awards" style="--units: 15; --min: 15" aria-pressed="false" aria-label="Award ceremony, 15 minutes"><span class="seg-fill"></span><span class="seg-label">Awards</span></button>
-        </div>
-        <div class="day-scale" aria-hidden="true">
-          <span style="--at: 0">0</span>
-          <span class="mid" style="--at: 30">30</span>
-          <span style="--at: 60">60</span>
-          <span class="mid" style="--at: 90">90</span>
-          <span class="mid" style="--at: 120">120</span>
-          <span class="end">139 min</span>
-        </div>
-      </div>
-
-      <ol class="steps">
-        <li class="step phase-welcome" data-phase="welcome">
-          <p class="step-time">20 to 30 min</p>
-          <h3>Welcome and guest speaker</h3>
-          <p>The organizers explain the rules, then a guest speaker talks to the students.</p>
-        </li>
-        <li class="step phase-prep" data-phase="prep">
-          <p class="step-time">60 min</p>
-          <h3>Preparation</h3>
-          <p>Teams are drawn on the spot and get their case. There is an optional coffee break inside the hour.</p>
-        </li>
-        <li class="step phase-talk" data-phase="talk">
-          <p class="step-time">24 min a room</p>
-          <h3>Presentations and questions</h3>
-          <p>Two teams per room. Each presents for 7 minutes, then answers the judges for 5.</p>
-        </li>
-        <li class="step phase-write" data-phase="write">
-          <p class="step-time">5 to 10 min</p>
-          <h3>Written resolution</h3>
-          <p>Each team writes up its policy and hands it in, with any change the questions led to.</p>
-        </li>
-        <li class="step phase-awards" data-phase="awards">
-          <p class="step-time">15 min</p>
-          <h3>Award ceremony</h3>
-          <p>The winning team and the best speaker from each room get certificates and prizes. The best speaker can come from the losing team.</p>
-        </li>
+  <div class="doc">
+    <div class="row cases-row">
+      <h3 class="m m-label" id="cases-title">The four cases</h3>
+      <ol class="b case-links" aria-labelledby="cases-title">
+        <li><button type="button" class="case-link" data-show-case="0"><span class="case-link-n" aria-hidden="true">1</span><span class="case-link-t">National identity and values among young people in a globalized world</span></button></li>
+        <li><button type="button" class="case-link" data-show-case="1"><span class="case-link-n" aria-hidden="true">2</span><span class="case-link-t">The Uzbek language, a foreign language and a practical skill</span></button></li>
+        <li><button type="button" class="case-link" data-show-case="2"><span class="case-link-n" aria-hidden="true">3</span><span class="case-link-t">Young people’s responsibility for a healthy society</span></button></li>
+        <li><button type="button" class="case-link" data-show-case="3"><span class="case-link-n" aria-hidden="true">4</span><span class="case-link-t">A young person’s own responsibility for national values</span></button></li>
       </ol>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section" id="judging" aria-labelledby="judging-title">
-    <div class="wrap judging">
-      <div class="head">
-        <h2 id="judging-title">Judges score each team out of 100.</h2>
-        <p class="lede">Two teams work on the same case in each room, and the judges score both on one sheet. The sheet starts on a tie, so move the sliders to see who wins.</p>
-      </div>
-
-      <div class="sheet" data-sheet>
-        <div class="sheet-cols sheet-head" aria-hidden="true">
-          <span>Criterion</span><span class="num">Max</span><span>Team A</span><span>Team B</span>
-        </div>
-
-        <div class="sheet-cols sheet-row" data-key="understanding">
-          <div class="crit"><strong>Understanding of the problem</strong><span>Names the real cause and who is affected, and works from the case instead of general points.</span></div>
-          <span class="max">15</span>
-          <label class="score score-a"><span class="score-team">A</span><input type="range" id="a-understanding" min="0" max="15" value="12" aria-label="Team A, understanding of the problem"><output>12</output></label>
-          <label class="score score-b"><span class="score-team">B</span><input type="range" id="b-understanding" min="0" max="15" value="13" aria-label="Team B, understanding of the problem"><output>13</output></label>
-        </div>
-
-        <div class="sheet-cols sheet-row" data-key="solution">
-          <div class="crit"><strong>Quality of the solution</strong><span>Specific and realistic for Uzbekistan, says who does what, and answers every part of the question.</span></div>
-          <span class="max">20</span>
-          <label class="score score-a"><span class="score-team">A</span><input type="range" id="a-solution" min="0" max="20" value="17" aria-label="Team A, quality of the solution"><output>17</output></label>
-          <label class="score score-b"><span class="score-team">B</span><input type="range" id="b-solution" min="0" max="20" value="14" aria-label="Team B, quality of the solution"><output>14</output></label>
-        </div>
-
-        <div class="sheet-cols sheet-row" data-key="evidence">
-          <div class="crit"><strong>Argument and evidence</strong><span>Every claim has a reason, backed by examples, data or cases from Uzbekistan or elsewhere.</span></div>
-          <span class="max">20</span>
-          <label class="score score-a"><span class="score-team">A</span><input type="range" id="a-evidence" min="0" max="20" value="15" aria-label="Team A, argument and evidence"><output>15</output></label>
-          <label class="score score-b"><span class="score-team">B</span><input type="range" id="b-evidence" min="0" max="20" value="16" aria-label="Team B, argument and evidence"><output>16</output></label>
-        </div>
-
-        <div class="sheet-cols sheet-row" data-key="answers">
-          <div class="crit"><strong>Answers to questions</strong><span>Answers the question that was asked, admits where the proposal is weak, and adjusts without losing its line.</span></div>
-          <span class="max">15</span>
-          <label class="score score-a"><span class="score-team">A</span><input type="range" id="a-answers" min="0" max="15" value="12" aria-label="Team A, answers to questions"><output>12</output></label>
-          <label class="score score-b"><span class="score-team">B</span><input type="range" id="b-answers" min="0" max="15" value="12" aria-label="Team B, answers to questions"><output>12</output></label>
-        </div>
-
-        <div class="sheet-cols sheet-row" data-key="communication">
-          <div class="crit"><strong>Communication and teamwork</strong><span>Clear and on time, every member speaks, and the team listens to the other side.</span></div>
-          <span class="max">15</span>
-          <label class="score score-a"><span class="score-team">A</span><input type="range" id="a-communication" min="0" max="15" value="11" aria-label="Team A, communication and teamwork"><output>11</output></label>
-          <label class="score score-b"><span class="score-team">B</span><input type="range" id="b-communication" min="0" max="15" value="12" aria-label="Team B, communication and teamwork"><output>12</output></label>
-        </div>
-
-        <div class="sheet-cols sheet-row" data-key="resolution">
-          <div class="crit"><strong>Written resolution</strong><span>States the policy clearly, matches the presentation, and includes any change the questions led to.</span></div>
-          <span class="max">15</span>
-          <label class="score score-a"><span class="score-team">A</span><input type="range" id="a-resolution" min="0" max="15" value="11" aria-label="Team A, written resolution"><output>11</output></label>
-          <label class="score score-b"><span class="score-team">B</span><input type="range" id="b-resolution" min="0" max="15" value="11" aria-label="Team B, written resolution"><output>11</output></label>
-        </div>
-
-        <div class="sheet-cols sheet-total">
-          <span>Total</span><span class="max">100</span>
-          <output data-total="a" data-label="A">78</output>
-          <output data-total="b" data-label="B">78</output>
-        </div>
-        <p class="verdict" data-verdict aria-live="polite">Tied at 78. Team A wins on quality of the solution, 17 to 14.</p>
+<section class="section home-sec team-preview" id="team" aria-labelledby="team-title">
+  <div class="doc">
+    <div class="row sec-head">
+      <p class="m m-label">Signatories</p>
+      <div class="b">
+        <h2 class="t-h2" id="team-title">Run by students</h2>
+        <p class="sec-sub">UNPC is student-run, with more than 100 volunteer organizers. Six roles lead the work; five of them are open.</p>
       </div>
     </div>
-  </section>
-
-
-  <section class="section tint" id="first" aria-labelledby="first-title">
-    <div class="wrap first">
-      <div class="first-copy">
-        <div class="head">
-          <h2 id="first-title">The first tournament</h2>
-          <p class="lede">Sunday 4 October 2026, at Sodiq School in Tashkent.</p>
+    <div class="row">
+      <div class="bn signatories" data-signatories>
+        <div class="founder">
+          <button type="button" class="portrait-btn founder-portrait" data-person="0" aria-haspopup="dialog" aria-label="Ozodbek Toshpulatov, Founder and CEO"><span class="plate portrait" data-slot data-portrait><span class="monogram" aria-hidden="true">OT</span><img src="photos/team/ozodbek-toshpulatov.jpg" alt="" loading="lazy" decoding="async"></span></button>
+          <div class="founder-sig">
+            <p class="founder-name">Ozodbek Toshpulatov</p>
+            <p class="founder-meta"><span>Founder and CEO</span><span>Sodiq School, Tashkent</span></p>
+            <p class="founder-more"><button type="button" class="btn-link" data-person="0" aria-haspopup="dialog">Read about Ozodbek</button></p>
+          </div>
         </div>
-        <dl class="facts">
-          <div><dt>Winning team</dt><dd>Young Policy Leaders</dd></div>
-          <div><dt>Guest</dt><dd>Bobur Bekmurodov, member of the Legislative Chamber of the Oliy Majlis</dd></div>
-          <div><dt>Prizes</dt><dd>Certificates for the winning team and the best speaker, and a year of The Diplomat for the winners</dd></div>
-          <div><dt>Afterwards</dt><dd>We sent the winning proposal to Bobur Bekmurodov</dd></div>
-        </dl>
-      </div>
-      <div class="mosaic">
-        <div class="photo" data-slot>
-          <img src="photos/first-tournament/preparation.jpg" alt="Teams working on their cases during the hour of preparation" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Preparation</strong><span>Teams working on their cases during the hour.</span><code>photos/first-tournament/preparation.jpg</code></span>
-        </div>
-        <div class="photo" data-slot>
-          <img src="photos/first-tournament/presenting.jpg" alt="A team presenting its policy" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Presenting</strong><span>One team at the front of the room.</span><code>photos/first-tournament/presenting.jpg</code></span>
-        </div>
-        <div class="photo" data-slot>
-          <img src="photos/first-tournament/questions.jpg" alt="Judges asking a team questions" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Questions</strong><span>The judges’ side of the room.</span><code>photos/first-tournament/questions.jpg</code></span>
-        </div>
-        <div class="photo" data-slot>
-          <img src="photos/first-tournament/guest.jpg" alt="Bobur Bekmurodov speaking to the students" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Our guest</strong><span>Bobur Bekmurodov speaking to the students.</span><code>photos/first-tournament/guest.jpg</code></span>
-        </div>
-        <div class="photo" data-slot>
-          <img src="photos/first-tournament/ceremony.jpg" alt="The award ceremony" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>Award ceremony</strong><code>photos/first-tournament/ceremony.jpg</code></span>
-        </div>
-        <div class="photo" data-slot>
-          <img src="photos/first-tournament/winners.jpg" alt="Young Policy Leaders with their certificates" loading="lazy" decoding="async">
-          <span class="photo-hint"><strong>The winners</strong><span>Young Policy Leaders with their certificates.</span><code>photos/first-tournament/winners.jpg</code></span>
-        </div>
+        <ul class="sig-list" aria-label="Open roles">
+          <li class="sig"><span class="sig-role">Head of judging</span><span class="sig-state">Open<span class="sr-only"> role</span></span></li>
+          <li class="sig"><span class="sig-role">Head of cases</span><span class="sig-state">Open<span class="sr-only"> role</span></span></li>
+          <li class="sig"><span class="sig-role">Head of partnerships</span><span class="sig-state">Open<span class="sr-only"> role</span></span></li>
+          <li class="sig"><span class="sig-role">Head of logistics</span><span class="sig-state">Open<span class="sr-only"> role</span></span></li>
+          <li class="sig"><span class="sig-role">Head of media</span><span class="sig-state">Open<span class="sr-only"> role</span></span></li>
+        </ul>
       </div>
     </div>
-  </section>
-
-  <section class="section" id="team" aria-labelledby="team-title">
-    <div class="wrap">
-      <div class="head-row">
-        <div class="head">
-          <h2 id="team-title">Run by students</h2>
-          <p class="lede">UNPC is a non-profit, student-run project. Select a photo to read more.</p>
-        </div>
-        <a class="more" href="team.html">Meet the whole team</a>
-      </div>
-      <ul class="people people-row" data-people="row" data-limit="6"></ul>
+    <div class="row more-row">
+      <p class="b more-link"><a href="team.html">Meet the team</a></p>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section flush-top" id="partners" aria-labelledby="partners-title">
-    <div class="wrap">
-      <div class="head-row">
-        <div class="head">
-          <h2 id="partners-title">Partners</h2>
-          <p class="lede">Our case topics came from a member of the Oliy Majlis, and The Diplomat gives subscriptions to our winners.</p>
-        </div>
-        <a class="more" href="partners.html">See all partners</a>
-      </div>
-      <ul class="partner-tiles" data-partners="tiles"></ul>
-    </div>
-  </section>
-
-  <section class="section next" id="next" aria-labelledby="next-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="next-title"><span class="next-label">Next tournament</span> <span class="next-date" data-next-date>This Sunday</span></h2>
-        <p class="lede">In Tashkent, for high school students. Teams are drawn on the day, so you can register on your own.</p>
-      </div>
-      <div class="actions">
-        <a class="btn btn-primary" href="#next" data-register data-register-only hidden>Register</a>
-        <p data-telegram hidden><a href="#next">Follow UNPC on Telegram</a></p>
-        <div class="contact" data-register-fallback>
-          <span>To register, write to</span>
-          <span class="email" data-email>tashpulatovo211@gmail.com</span>
-          <button class="btn-copy" type="button" data-copy="tashpulatovo211@gmail.com" data-copy-email>Copy</button>
-        </div>
+<section class="section home-sec support" id="partners" aria-labelledby="partners-title">
+  <div class="doc">
+    <div class="row sec-head">
+      <p class="m m-label">Support</p>
+      <div class="b">
+        <h2 class="t-h2" id="partners-title">With the support of</h2>
       </div>
     </div>
-  </section>
+    <div class="row">
+      <ul class="bn support-list" data-support>
+        <li class="supporter"><span class="logo-slot" data-slot><span class="logo-word">Oliy Majlis</span><img src="photos/partners/oliy-majlis.png" alt="" loading="lazy" decoding="async"></span><span class="supporter-role">Case topics</span></li>
+        <li class="supporter"><span class="logo-slot" data-slot><span class="logo-word">The Diplomat</span><img src="photos/partners/the-diplomat.png" alt="" loading="lazy" decoding="async"></span><span class="supporter-role">Prizes</span></li>
+        <li class="supporter"><span class="logo-slot" data-slot><span class="logo-word">Sodiq School</span><img src="photos/partners/sodiq-school.png" alt="" loading="lazy" decoding="async"></span><span class="supporter-role">Venue</span></li>
+        <li class="supporter"><span class="logo-slot" data-slot><span class="logo-word"><span aria-hidden="true">KNPC</span><span class="sr-only">Kazakhstan National Policy Competition</span></span><img src="photos/partners/knpc.png" alt="" loading="lazy" decoding="async"></span><span class="supporter-role">Sister competition</span></li>
+      </ul>
+    </div>
+    <div class="row more-row">
+      <p class="b more-link"><a href="partners.html">Our partners, and how to help</a></p>
+    </div>
+  </div>
+</section>
+<!-- /HOME-SECTIONS -->
+
+<section class="section next" id="next" aria-labelledby="next-title">
+  <div class="doc">
+    <div class="row next-head">
+      <h2 class="m m-label" id="next-title">Next tournament</h2>
+      <p class="bn next-date" data-next-date data-next-split>This Sunday</p>
+    </div>
+    <div class="row next-body">
+      <div class="b">
+        <p class="next-lede">In Tashkent, for high school students. Teams are drawn on the day, so you can register on your own.</p>
+        <p class="next-reg" data-register-only hidden><a class="btn" href="#next" data-register>Register</a></p>
+        <div data-register-fallback>
+          <p class="next-note">Registration is by email for now.</p>
+          <div class="contact">
+            <span class="email" data-email>tashpulatovo211@gmail.com</span>
+            <span class="contact-actions">
+              <button class="btn" type="button" data-copy="tashpulatovo211@gmail.com" data-copy-email>Copy</button>
+              <a class="btn btn-quiet" href="mailto:tashpulatovo211@gmail.com?subject=Registration%20for%20Sunday" data-mailto="Registration for Sunday">Write an email</a>
+            </span>
+          </div>
+        </div>
+        <p class="next-tg" data-telegram hidden><a href="#next">The UNPC Telegram channel</a></p>
+      </div>
+      <div class="n next-figure" aria-hidden="true">
+        <svg class="next-arc" viewBox="0 0 400 216" data-next-arc focusable="false"></svg>
+      </div>
+    </div>
+  </div>
+</section>
 
 </main>
 
 <footer class="footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <a class="wordmark" href="index.html">UNPC</a>
-        <p>Uzbekistan National Policy Competition. A non-profit, student-run policy competition for high school students, held in Tashkent every Sunday since October 2026.</p>
-      </div>
-      <div>
-        <nav aria-label="Footer">
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="team.html">Team</a></li>
-            <li><a href="partners.html">Partners</a></li>
-            <li data-telegram hidden><a href="#next">Telegram</a></li>
-          </ul>
-        </nav>
+  <div class="doc">
+    <div class="row">
+      <p class="m footer-copy">&copy; 2026 UNPC</p>
+      <div class="b">
+        <p class="footer-name">Uzbekistan National Policy Competition</p>
+        <p class="footer-text">A non-profit, student-run policy competition for high school students in Tashkent, founded in 2026 by Ozodbek&nbsp;Toshpulatov.</p>
         <div class="contact">
           <span class="email" data-email>tashpulatovo211@gmail.com</span>
-          <button class="btn-copy" type="button" data-copy="tashpulatovo211@gmail.com" data-copy-email>Copy</button>
+          <button class="btn btn-quiet btn-sm" type="button" data-copy="tashpulatovo211@gmail.com" data-copy-email>Copy</button>
         </div>
       </div>
+      <nav class="n" aria-label="Footer">
+        <ul class="footer-links">
+          <li><a href="index.html" aria-current="page">Home</a></li>
+          <li><a href="team.html">Team</a></li>
+          <li><a href="partners.html">Partners</a></li>
+        </ul>
+      </nav>
     </div>
-    <p class="legal">© 2026 UNPC</p>
   </div>
 </footer>
+
 </body>
 </html>
