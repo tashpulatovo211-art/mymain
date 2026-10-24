@@ -37,6 +37,7 @@
   --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(19, 33, 42, .28);
   --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -36px rgba(19, 33, 42, .42);
   --img-filter: saturate(.9) contrast(1.03);
+  --plate-dim: 0; /* photo plates carry the light treatment in their files; dark mode dims them by this much */
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -50,7 +51,7 @@
     --plan-ln: #4d6670; --sheet-tint: #dce3e7;
     --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(0, 0, 0, .6);
     --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -30px rgba(0, 0, 0, .7);
-    --img-filter: saturate(.85) brightness(.9);
+    --img-filter: saturate(.85) brightness(.9); --plate-dim: .1;
     color-scheme: dark;
   }
 }
@@ -64,7 +65,7 @@
   --plan-ln: #4d6670; --sheet-tint: #dce3e7;
   --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(0, 0, 0, .6);
   --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -30px rgba(0, 0, 0, .7);
-  --img-filter: saturate(.85) brightness(.9);
+  --img-filter: saturate(.85) brightness(.9); --plate-dim: .1;
   color-scheme: dark;
 }
 
@@ -484,7 +485,9 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
   font-optical-sizing: auto;
   color: var(--ink);
 }
-.next-date > span { display: block; white-space: nowrap; }
+/* Each line stays whole wherever it fits. On a Sunday in Tashkent the first line reads "Today, Sunday", which is wider
+   than a 320px column, so a line may wrap between words rather than push the page sideways. */
+.next-date > span { display: block; }
 .next-body { margin-top: var(--s7); align-items: end; }
 .next-lede { font: var(--t-paper); max-width: 34em; text-wrap: pretty; }
 .next-note { margin-top: var(--s5); font: var(--t-small); color: var(--ink-2); }
@@ -593,6 +596,83 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
 .plate.has-image > img { opacity: 1; }
 .plate.has-image > :not(img) { visibility: hidden; }
 html:not(.js) .plate > img { opacity: 1; }
+
+/* ---------- Photo plates (README, "Photo plates") ---------- */
+
+/* A real photo set into the document, made by tools/plates.py, which also prints the markup. The frame shows exactly
+   the visible crop at rest. The file carries --pp-over of extra height above and below (a fraction of the visible
+   height), which plates.js spends on a slow drift as the plate crosses the screen, so no edge ever shows. Per plate, on
+   .pp-frame: --pp-ratio (visible width over height), --pp-over, --pp-focus (where the faces are, as the settle's origin)
+   and --pp-swatch (a tiny inline copy of the crop, shown blurred until the photo arrives), and the same four with -n
+   for the closer crop that the <picture> switches to at 560px and below (phones, where a wide group would leave faces
+   too small). The caption sits under the frame: a short title in ink, then plain sentences. When the closer crop cuts
+   off something the text mentions, the caption carries a line for each crop (.pp-cap-w, .pp-cap-n), switched at the
+   same 560px, so it describes the crop on screen. */
+.photo-plate { position: relative; min-width: 0; }
+.pp-frame {
+  --pp-o: var(--pp-over, 0);
+  --pp-f: var(--pp-focus, 50% 50%);
+  --pp-sw: var(--pp-swatch, none);
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: var(--pp-ratio, 3 / 2);
+  border-radius: var(--r-plate);
+  background: var(--wash);
+  isolation: isolate;
+}
+.pp-cap-n { display: none; }
+@media (max-width: 560px) {
+  .pp-frame {
+    --pp-o: var(--pp-over-n, var(--pp-over, 0));
+    --pp-f: var(--pp-focus-n, var(--pp-focus, 50% 50%));
+    --pp-sw: var(--pp-swatch-n, var(--pp-swatch, none));
+    aspect-ratio: var(--pp-ratio-n, var(--pp-ratio, 3 / 2));
+  }
+  .pp-cap-w { display: none; }
+  .pp-cap-n { display: inline; }
+}
+/* The photo's own colours, already blurred, while it loads, so the frame never reads as an empty box. Hidden once the
+   photo has faded in. */
+.pp-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pp-sw) center / 100% 100% no-repeat;
+}
+.photo-plate.is-loaded .pp-frame::before { visibility: hidden; transition: visibility 0s .7s; }
+.pp-frame > picture { display: contents; }
+.pp-img {
+  position: absolute;
+  left: 0;
+  top: calc(var(--pp-o) * -100%);
+  width: 100%;
+  height: calc(100% * (1 + 2 * var(--pp-o)));
+  max-width: none;
+  object-fit: cover;
+  transform-origin: var(--pp-f);
+  transition: opacity .6s var(--ease-out);
+}
+/* The files already carry the site's light photo treatment (tools/plates.py, "finish"), so the moving photo needs no
+   CSS filter. Dark mode dims it as --img-filter's brightness(.9) would, with a plain veil that costs far less to draw. */
+.pp-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--plate-dim, 0);
+  pointer-events: none;
+}
+/* plates.js marks a plate whose photo is still loading, so it fades in once it has; without the script it simply shows. */
+.photo-plate.is-waiting .pp-img { opacity: 0; }
+html.motion .photo-plate.is-near .pp-img { will-change: transform; }
+/* A photo that fails to load takes its plate with it, caption and all: an empty frame would read as unfinished. While
+   the plate is on screen or above it, plates.js keeps the frame with its swatch (.is-failed), so nothing jumps, and
+   takes the plate out once it is below the screen. */
+.photo-plate.is-failed .pp-img { visibility: hidden; }
+.photo-plate.is-missing { display: none; }
+.pp-cap { margin-top: 14px; }
+.pp-cap-text { max-width: 60ch; font: var(--t-small); color: var(--ink-2); text-wrap: pretty; }
+.pp-cap-text b { color: var(--ink); font-weight: 600; }
 
 /* Plan line drawings (room-plan stand-ins). */
 .plan .ln { fill: none; stroke: var(--plan-ln); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
@@ -973,6 +1053,7 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
     height: 100%;
     pointer-events: none;
   }
+  /* story.js sizes it and moves it over the formation box by transform, so placing it is no layout shift. */
   html.motion .story:not(.is-static) .story-gl {
     display: block;
     position: absolute;
@@ -1302,6 +1383,11 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
 /* The articles fade under the band instead of being cut by its edge. Short screens drop the labels. */
 .daybar-band::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 20px; background: linear-gradient(var(--ground), color-mix(in srgb, var(--ground) 0%, transparent)); pointer-events: none; }
 @media (max-height: 780px) { .daybar-band .daybar-labels { display: none; } .daybar-band { padding-bottom: 12px; } }
+/* Without the script the bar cannot follow the page (it would read "Welcome" over every article), so it stays at the
+   head of the articles as a plain picture of the day. */
+html:not(.js) .daybar-band { position: relative; top: auto; }
+html:not(.js) .daybar-band::after,
+html:not(.js) .daybar-follows { display: none; }
 
 .articles { margin-top: clamp(32px, 4vw, 56px); }
 .art + .art { margin-top: clamp(48px, 6vw, 80px); }
@@ -1344,6 +1430,34 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
   .rb-labels .rb-b::before { background: var(--fill-green); }
   .rb-labels b, .rb-labels em { grid-column: 2; }
   .rb-min { display: inline; }
+}
+
+/* ---------- The plate in Article 6 ---------- */
+
+/* An article can carry one photo plate of its own step. It spans the full content width (up to --max, as the
+   gallery), wider than the three columns, and its caption comes back to the text column. 100cqw is the width of
+   the articles list, which is the content width; 100% in a margin is the grid area of the three columns. */
+.articles { container-type: inline-size; }
+.art > .photo-plate {
+  grid-column: 1 / -1;
+  align-self: start;
+  margin: clamp(32px, 3.6vw, 48px) calc((100% - 100cqw) / 2) 0;
+}
+.art > .photo-plate .pp-cap {
+  display: grid;
+  grid-template-columns: var(--col-m) minmax(0, var(--col-t)) var(--col-n);
+  column-gap: var(--col-gap);
+  justify-content: center;
+}
+.art > .photo-plate .pp-cap-text { grid-column: 2; max-width: var(--col-t); }
+@media (max-width: 1140px) {
+  .art > .photo-plate .pp-cap { grid-template-columns: var(--col-m) minmax(0, 1fr); }
+}
+/* Phones: edge to edge, and the caption lines up with the article's text. */
+@media (max-width: 760px) {
+  .art > .photo-plate { margin: var(--s6) calc(-1 * var(--pad-r)) 0 calc(-1 * var(--pad-l)); }
+  .art > .photo-plate .pp-frame { border-radius: 0; }
+  .art > .photo-plate .pp-cap { display: block; margin-top: var(--s3); padding: 0 var(--pad-r) 0 calc(var(--pad-l) + 46px); }
 }
 
 /* ---------- Case deck (Article 3) ---------- */
@@ -2349,6 +2463,7 @@ html:not(.motion) *::after {
   animation: none !important;
   scroll-behavior: auto !important;
 }
+html:not(.motion) .pp-img { transform: none !important; }
 html:not(.motion)::view-transition-group(*),
 html:not(.motion)::view-transition-old(*),
 html:not(.motion)::view-transition-new(*) { animation: none !important; }

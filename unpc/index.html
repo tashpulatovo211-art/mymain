@@ -23,6 +23,7 @@ try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.classList.add('
 <script src="assets/story.js" defer></script>
 <script src="assets/paper.js" defer></script>
 <script src="assets/home.js" defer></script>
+<script src="assets/plates.js" defer></script>
 </head>
 <body data-page="home">
 <a class="skip" href="#main">Skip to content</a>
@@ -176,7 +177,7 @@ try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.classList.add('
       <p class="m m-label">Articles</p>
       <div class="b">
         <h2 class="t-h2" id="format-title">The Sunday, in order</h2>
-        <p class="sec-sub">A tournament takes 124 to 139 minutes. The bar draws the day to scale and follows you down the page.</p>
+        <p class="sec-sub">A tournament takes 124 to 139 minutes. The bar draws the day to scale<span class="daybar-follows"> and follows you down the page</span>.</p>
       </div>
     </div>
 
@@ -302,6 +303,24 @@ try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.classList.add('
           <p class="t-clause"><span class="sr-only">Article 6. </span><i>Awards</i> certificates and prizes to the winning team and to the best speaker of each room.</p>
           <p class="art-dur">15 minutes</p>
         </div>
+        <!-- Photo plate (README, "Photo plates"). Made by tools/plates.py from tools/plates.json: paste its markup, do not
+             type sizes by hand. The frame shows exactly the visible crop at rest; the files carry --pp-over of extra
+             height above and below for the drift. Phones (560px and below) get their own closer crop, alt text and caption line. -->
+        <figure class="photo-plate" data-photo-plate>
+          <div class="pp-frame" style="--pp-ratio: 2.349; --pp-over: 0.04; --pp-focus: 52% 26%; --pp-ratio-n: 1.000; --pp-over-n: 0.03; --pp-focus-n: 48% 23%; --pp-swatch: url(data:image/webp;base64,UklGRsABAABXRUJQVlA4ILQBAACwDgCdASpgACgAPm0skkakIiGhJzgOQIANiWMAuzPeAfHIo1KBWgBwmU3brt7abG93GTDV4JwHXUwIJCaKQHb+yc2QTds59cEFAML1f4rvrZgkaQcanQ4lym8XqVK3UJL0jXmLZU0s9+9zyb1V0nvIVKo2p/rLml9221GRjMAA/RwLUl46KHxBh4vH/k35B3tsMtr/8Z5/avB+iP3KJTgu/UKqdj5f0u3IQnk/zNCrBqwoDxEf8PA8rUdpxmsGtvqZORkObubyio/bMPBOD0sg2wrSXHPoynUnrPKbVD8D/5UvE34yGMD4Sy5Dyz2jvwwce9QWWztr99VyYVleaof4wdt/UsnuOiL76T27uyrT1NLInNaaF5smp/5yZqUVNxCO42RaTylBaptlbk9HbOzG5lwkTEvzsB7f+zSkNMXr0EVCpnZi7S1yyLLls5LG2VCv4MmQLQKBCUOmmm+GqVjNhUcIZXeh6s4leWyJlhVUnVxJ5f4gEynCHdgNCuUSkUwPgQSbTEnM6kLO+UN+nLePkxkTk7m26z8NgPxuz8hq8N0uE8W1DslDiJNf0OQxUDpn8AAA); --pp-swatch-n: url(data:image/webp;base64,UklGRs4CAABXRUJQVlA4IMICAADQGACdASpgAGAAPlkmjkWjoiGdzazMOAWEsYBd1kbjXOs5YTqG6klBwKMJZzJrxzqD/tPCM1Pq0w8evRAMJ1juWCRxHzrdxGmHTFuW3H7eo+ybsN6eQfjeuPkr83muNrYMfNSsxfvDinT1zrAQLLCRW7KLM+lLl9H1YkKEDU1IQUFuFORwuxTcN2B0vq21ERmPtzcJjLKHAqg8BAY9jKuGKd5zBbHqykmfCIN6dvJDcphvRhhtI3X7IrFaNquBmV7NtX3ESFNOnuYy/YwvMsAA/v16DO6lg13N9H2WS2blrpeVXG8H+u/flXxEvoO7ZeXjXR2tZgiW/u6Kzq/zRuvOBd5eZ2DZtEn4aHH8LWFJdaJSJ+RR8g/ryaaehM+qmvGyNREloAtl4OZd7sYuV8VRAfRg5/I9at+JFwGZyd8jzTwhNU9thBilG8voDQmoeFQAFusxYN/5AjDPpAAQWWffGjjafi1IKrakcQQDV4lx+lBB4PLmNzz9oF/8eHDVsWN1Tma4dd/h1uuywYjJZSo36U+3saFdQgFf+zS5+2C33dyphbok4INjNK03+Vq86FPT6Bns4M421Er5IJ+Azm85aeO/hNiSrWUpMRn1yr9ICk+JhzOKp8MgUn76ZMUJ2aeBvnYEFH/gqqSdGUeuCYTDESY4dmnrpe85UazjxWCxzqbLFDUC7tEiczO3tDUKfVk0cZ4nqdxN784sIYyYTOWfGgJnkaS8nk+nzXHHQumQRkCLE+TX+M2/qgfhJHNIV/hTqYpKOVtYGRiijgv86PdXa18bgYTax56TWcLDeoWbpUrgOBJF8iNqHqBodxJoJWlu4TTArdlZC3lGFlJE8M7xVLrbFzth5qeCrk7SFhUS4ZR0Gwji5OKLPpDzN0SrLCvvFucBlgqn4R73RPv0xzUxe5yoLR5K5977j9WzNtzC/XAA)">
+            <picture>
+              <source media="(max-width: 560px)" type="image/avif" sizes="100vw" srcset="photos/sundays/winners-square-480.avif 480w, photos/sundays/winners-square-720.avif 720w, photos/sundays/winners-square-1080.avif 1080w" data-alt="Three people stand in front of a whiteboard and a screen. Two hold certificates that read Winning team, and one holds a certificate that reads Best speaker.">
+              <source media="(max-width: 560px)" type="image/webp" sizes="100vw" srcset="photos/sundays/winners-square-480.webp 480w, photos/sundays/winners-square-720.webp 720w, photos/sundays/winners-square-1080.webp 1080w" data-alt="Three people stand in front of a whiteboard and a screen. Two hold certificates that read Winning team, and one holds a certificate that reads Best speaker.">
+              <source media="(max-width: 560px)" type="image/jpeg" sizes="100vw" srcset="photos/sundays/winners-square-480.jpg 480w, photos/sundays/winners-square-720.jpg 720w" data-alt="Three people stand in front of a whiteboard and a screen. Two hold certificates that read Winning team, and one holds a certificate that reads Best speaker.">
+              <source type="image/avif" sizes="(max-width: 760px) 100vw, (max-width: 1350px) 92vw, 1240px" srcset="photos/sundays/winners-wide-960.avif 960w, photos/sundays/winners-wide-1440.avif 1440w, photos/sundays/winners-wide-1920.avif 1920w">
+              <source type="image/webp" sizes="(max-width: 760px) 100vw, (max-width: 1350px) 92vw, 1240px" srcset="photos/sundays/winners-wide-960.webp 960w, photos/sundays/winners-wide-1440.webp 1440w, photos/sundays/winners-wide-1920.webp 1920w">
+              <img class="pp-img" src="photos/sundays/winners-wide-1440.jpg" srcset="photos/sundays/winners-wide-960.jpg 960w, photos/sundays/winners-wide-1440.jpg 1440w" sizes="(max-width: 760px) 100vw, (max-width: 1350px) 92vw, 1240px" width="1440" height="663" loading="lazy" decoding="async" alt="Certificates that read Winning team and Best speaker, held up in front of a whiteboard and a screen." data-alt="Five people stand in front of an orange wall, a whiteboard and a screen. Three hold certificates that read Winning team, and one holds a certificate that reads Best speaker.">
+            </picture>
+          </div>
+          <figcaption class="pp-cap">
+            <p class="pp-cap-text"><b>Winning team and best speaker.</b> <span class="pp-cap-w">Certificates from an award ceremony. The screen behind them has a one-hour timer and a wheel of names open.</span><span class="pp-cap-n">Certificates from an award ceremony. The screen behind them has a one-hour timer open.</span></p>
+          </figcaption>
+        </figure>
       </li>
       <li class="row art" data-after>
         <p class="m art-num" aria-hidden="true">7</p>

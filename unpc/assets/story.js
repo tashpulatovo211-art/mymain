@@ -1034,11 +1034,11 @@
           }
           model = build(geo);
           clearTimes();
-          // The WebGL canvas covers the formation box plus 40px on each side.
+          // The WebGL canvas covers the formation box plus 40px on each side. It is placed by transform from its 0,0
+          // corner, not by left and top, so its first placement after paint does not count as a layout shift.
           const B = geo.box;
           glBox = { left: Math.round(B.x - 40), top: Math.round(B.y - 40), w: Math.round(B.w + 80), h: Math.round(B.h + 80) };
-          glCanvas.style.left = glBox.left + "px";
-          glCanvas.style.top = glBox.top + "px";
+          glCanvas.style.transform = "translate(" + glBox.left + "px," + glBox.top + "px)";
           glCanvas.style.width = glBox.w + "px";
           glCanvas.style.height = glBox.h + "px";
           // read after the measuring above, which may itself have started a font load
