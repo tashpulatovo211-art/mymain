@@ -114,9 +114,36 @@
 
   function setupMotion() {
     on(reducedMQ, "change", () => {
-      root.classList.toggle("motion", !reducedMQ.matches);
+      // A home story that never started (html.story-late, below) stays static: there is no story.js to pin it.
+      root.classList.toggle("motion", !reducedMQ.matches && !root.classList.contains("story-late"));
       emit("unpc:motion", { motion: motion() });
     });
+  }
+
+  // The pre-paint script in each page's <head> sets html.story-late, and takes html.motion away, when the home story has
+  // no mode just after DOMContentLoaded: story.js was blocked, missing or failed to run. The page then works as the static
+  // story with nothing drawn (style.css hides its empty figures). Here the scripts that follow the motion setting hear
+  // the change, and the nav's Register steps back while the hero's own "Register for Sunday" is in view below the bar,
+  // as story.js does in its static story, so the first view keeps one solid button.
+  function setupStoryLate() {
+    if (!document.querySelector("[data-story]")) return;
+    let done = false;
+    const go = () => {
+      if (done || !root.classList.contains("story-late")) return;
+      done = true;
+      watch.disconnect();
+      emit("unpc:motion", { motion: motion() });
+      const reg = $("[data-nav-register]");
+      const hero = $(".hero-actions .btn");
+      const bar = Math.round(parseFloat(getComputedStyle(root).getPropertyValue("--nav-h"))) || 64;
+      if (reg && hero && window.IntersectionObserver)
+        new IntersectionObserver((e) => reg.classList.toggle("is-hero-quiet", e[e.length - 1].isIntersecting), {
+          rootMargin: -bar + "px 0px 0px 0px"
+        }).observe(hero);
+    };
+    const watch = new MutationObserver(go);
+    watch.observe(root, { attributes: true, attributeFilter: ["class"] });
+    go();
   }
   const onMotion = (fn) => {
     const h = (e) => fn(e.detail.motion);
@@ -335,15 +362,52 @@
       window.addEventListener("pointercancel", done, true);
       disarm = done;
     });
-    // While the Next block is on screen, the nav button steps back so only one solid button is in view.
+    // The nav's Register steps back while the Next block's own solid button ("Register by email", or "Register for
+    // Sunday" once config.registerUrl is set) is on screen below the bar, so a view never has two solid buttons and never
+    // loses its only one to a date or a heading. On Partners it also steps back beside the partner ask (data-nav-quiet,
+    // the top 65% of the view): a student's Register should not compete with it. The hero's button is story.js's job.
     const reg = $("[data-nav-register]", nav);
-    const next = $("#next");
-    if (reg && next && window.IntersectionObserver) {
-      new IntersectionObserver((entries) => reg.classList.toggle("is-quiet", entries[0].isIntersecting), { rootMargin: "0px 0px -35% 0px" }).observe(next);
+    if (reg && window.IntersectionObserver) {
+      const seen = new Set();
+      const update = (entries) => {
+        entries.forEach((en) => (en.isIntersecting ? seen.add(en.target) : seen.delete(en.target)));
+        reg.classList.toggle("is-quiet", seen.size > 0);
+      };
+      const bar = Math.round(parseFloat(getComputedStyle(root).getPropertyValue("--nav-h"))) || 64;
+      const solid = new IntersectionObserver(update, { rootMargin: -bar + "px 0px 0px 0px" });
+      $$("#next .btn:not(.btn-quiet)").forEach((el) => solid.observe(el));
+      const asks = new IntersectionObserver(update, { rootMargin: "0px 0px -35% 0px" });
+      $$("[data-nav-quiet]").forEach((el) => asks.observe(el));
     }
     // Growing past the phone layout closes it.
     on(mq("(min-width: 720px)"), "change", (e) => {
       if (e.matches && isOpen()) setOpen(false);
+    });
+  }
+
+  /* ---------- A glide for in-page links (not on Home) ---------- */
+
+  // On Team and Partners a click on an in-page link ("Register" to #next) glides there instead of jumping. Smooth scroll
+  // is on only for that click (html.is-gliding), never for the page: keepPlace() brings the reader's place back with
+  // scrollBy after a resize, and that must stay instant. Home keeps its jumps: a glide across the pinned story would
+  // replay every formation in under a second.
+  function setupGlide() {
+    if (document.body.getAttribute("data-page") === "home") return;
+    let timer = 0;
+    const stop = () => {
+      clearTimeout(timer);
+      root.classList.remove("is-gliding");
+      window.removeEventListener("scrollend", stop);
+    };
+    on(document, "click", (e) => {
+      if (!motion() || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = e.target.closest && e.target.closest('a[href^="#"]:not(.skip)');
+      if (!a || a.getAttribute("href").length < 2) return;
+      stop();
+      root.classList.add("is-gliding");
+      window.addEventListener("scrollend", stop);
+      // A link to a place already in view never scrolls, so no scrollend comes: the class goes after 1200ms anyway.
+      timer = setTimeout(stop, 1200);
     });
   }
 
@@ -564,7 +628,7 @@
     return (
       '<div class="contact" data-copy-scope>' +
       '<span class="email">' + esc(email) + "</span>" +
-      '<button type="button" class="btn btn-quiet btn-sm" data-copy="' + esc(email) + '">Copy</button>' +
+      '<button type="button" class="btn btn-quiet btn-sm" data-copy="' + esc(email) + '">Copy address</button>' +
       "</div>"
     );
   }
@@ -671,9 +735,12 @@
       return r.width > 0 && r.height > 0 ? r : null;
     };
 
-    const backdrop = (from, to, duration) => {
+    // The site's two curves (style.css): --ease-out to place things, --ease-io for the close.
+    const EASE_OUT = "cubic-bezier(.2,.7,.1,1)";
+    const EASE_IO = "cubic-bezier(.65,0,.35,1)";
+    const backdrop = (from, to, duration, easing) => {
       try {
-        dialog.animate([{ opacity: from }, { opacity: to }], { duration, easing: "ease-out", pseudoElement: "::backdrop", fill: "forwards" });
+        dialog.animate([{ opacity: from }, { opacity: to }], { duration, easing, pseudoElement: "::backdrop", fill: "forwards" });
       } catch (e) {}
     };
 
@@ -684,7 +751,7 @@
       if (wideMQ.matches) {
         const from = sourceRect(trigger, i);
         const ease = "cubic-bezier(.2,.75,.1,1)";
-        backdrop(0, 1, 420);
+        backdrop(0, 1, 420, EASE_OUT);
         if (from) {
           // FLIP: from the clicked portrait's rect to the dialog portrait's rect.
           const pr = panel.getBoundingClientRect();
@@ -704,13 +771,13 @@
           panel.animate([{ transform: "translate(" + tx + "px," + ty + "px) scale(" + s + "," + sy + ")", borderRadius: "6px" }, { transform: "none" }], { duration: 620, easing: ease });
           // Linear timing with the ease on the last leg, so the text stays hidden for the first 35% of the time.
           body.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 0, transform: "translateY(14px)", offset: 0.35, easing: ease }, { opacity: 1, transform: "none" }], { duration: 620 });
-          closeButton.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1 }], { duration: 620 });
+          closeButton.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5, easing: ease }, { opacity: 1 }], { duration: 620 });
         } else {
           panel.animate([{ opacity: 0, transform: "translateY(10px) scale(.98)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: ease });
         }
       } else {
-        backdrop(0, 1, 360);
-        panel.animate([{ transform: "translateY(100%)" }, { transform: "none" }], { duration: 360, easing: "cubic-bezier(.2,.7,.1,1)" });
+        backdrop(0, 1, 360, EASE_OUT);
+        panel.animate([{ transform: "translateY(100%)" }, { transform: "none" }], { duration: 360, easing: EASE_OUT });
       }
     };
 
@@ -739,13 +806,17 @@
       dialog.close();
       closing = false;
       setUrl(location.pathname + location.search + baseHash);
-      // Focus returns to the opener; after a deep link, to the matching card, without scrolling.
-      let back = opener && document.contains(opener) ? opener : null;
-      if (!back) back = $('[data-person="' + index + '"]') || $('[data-person="' + (shown[index] && shown[index].id) + '"]');
-      // After a deep link, a card far off screen would leave focus thousands of pixels away, and a page with no card
-      // (Partners) would leave it on the body: use the top of the page.
+      // Focus returns to the opener. After a deep link it goes, without scrolling, to a trigger of that person in view:
+      // its Tab stop first, else a portrait that opens the same dialog (out of the tab order). A card far off screen
+      // would leave focus thousands of pixels away, and a page with no card (Partners) would leave it on the body: with
+      // none in view, focus goes to the top of the page.
       const offscreen = (el) => { const r = el.getBoundingClientRect(); return r.bottom < 0 || r.top > innerHeight; };
-      if (!opener && (!back || offscreen(back))) back = document.getElementById("main");
+      let back = opener && document.contains(opener) ? opener : null;
+      if (!back) {
+        const id = shown[index] && shown[index].id;
+        const near = $$('[data-person="' + index + '"], [data-person="' + id + '"]').filter((el) => el.getClientRects().length && !el.closest('[aria-hidden="true"]') && !offscreen(el));
+        back = near.find((el) => el.tabIndex >= 0) || near[0] || document.getElementById("main");
+      }
       if (back) back.focus({ preventScroll: !opener });
       opener = null;
       emit("unpc:dialog", { open: false, index });
@@ -755,8 +826,8 @@
       if (!dialog.open || closing) return;
       if (!motion() || !panel.animate) return finishClose();
       closing = true;
-      backdrop(1, 0, 220);
-      const a = panel.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(.97)" }], { duration: 220, easing: "ease-in", fill: "forwards" });
+      backdrop(1, 0, 220, EASE_IO);
+      const a = panel.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(.97)" }], { duration: 220, easing: EASE_IO, fill: "forwards" });
       a.onfinish = finishClose;
       a.oncancel = () => {
         if (closing) finishClose();
@@ -833,8 +904,10 @@
   /* ---------- Start ---------- */
 
   setupMotion();
+  setupStoryLate();
   setupTheme();
   setupNav();
+  setupGlide();
   setupNext();
   setupCopy();
   setupSlots();

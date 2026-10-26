@@ -5,8 +5,11 @@ The website of the Uzbekistan National Policy Competition. It has three pages:
 - `index.html`: the home page. It opens on the chamber story, then the preamble, the Sunday in order, the score sheet, the first tournament, the team and the partners.
 - `team.html`: the organizers. Click the founder's portrait or name to open his details.
 - `partners.html`: the partners, and how to become one.
+- `404.html`: the page for an address that is not on the site. Set your host to show it for any missing page. When the host shows it at a deeper address (such as `/team/`), a small script at the top of its `<head>` finds the site's folder, so the page keeps its look and its links. Without JavaScript this works only at the site's own level; see "Link previews", step 3.
 
 The site is static. It needs no build step, no server code and no outside scripts. Fonts come from Google Fonts.
+
+If `assets/story.js` cannot load or fails, the home page still works: a small script in the `<head>` of each page notices it right after the page loads and shows the story as plain text, with no empty frames. Without JavaScript the story reads the same way.
 
 ## Files
 
@@ -14,13 +17,15 @@ The site is static. It needs no build step, no server code and no outside script
 |---|---|
 | `assets/style.css` | The one stylesheet for all three pages |
 | `assets/data.js` | Settings, organizers and partners (edit this one) |
-| `assets/site.js` | Theme, menu, next Sunday, Copy, photo slots, the organizer dialog, keeping the reader's place when the window changes size |
+| `assets/site.js` | Theme, menu, next Sunday, Copy, photo slots, the organizer dialog, keeping the reader's place when the window changes size, the glide to "Register" on Team and Partners, and the static home page when `story.js` does not start |
 | `assets/chamber.js` | The seat chart drawing shared by every page |
 | `assets/story.js`, `assets/paper.js` | The home page story and its paper sheet (home only) |
 | `assets/home.js` | The case deck and clock, the day bar, the score sheet, and the team and partner previews (home only) |
 | `assets/pages.js` | The team and partner chambers (Team and Partners only) |
 | `assets/plates.js` | Photo plates: the fade-in once a photo loads, the alt text for each crop, and the slow drift as a plate passes (home only for now) |
 | `tools/plates.py`, `tools/plates.json` | The one way to make the files for a photo plate: grade, crops, sizes and the markup. The site does not load them |
+| `CLAUDE.md` | Notes for Claude Code: the design skills that apply to this site, and where UNPC keeps its own rules. The site does not load it; leave it out when you upload the site |
+| `assets/og.png`, `tools/og.html` | The picture that shows when someone shares a link to the site, and the page it is made from (see "Link previews") |
 
 ## See it on your computer
 
@@ -44,7 +49,7 @@ All the data that changes is in `assets/data.js`. Edit the file, save it, and re
 
 ## Add photos
 
-Put each photo at the path below. Until a file exists, the site shows a drawn stand-in: a room plan for most tournament photos, the team name for the winners, initials for portraits and the typeset name for logos. When the file is there, it fades in over the stand-in.
+Put each photo at the path below. Until a file exists, the site shows a drawn stand-in: a room plan for most tournament photos, the team name for the winners, initials for portraits and the typeset name for logos. When the file is there, it fades in over the stand-in and comes into focus.
 
 | Where on the site | File | Shape |
 |---|---|---|
@@ -105,6 +110,18 @@ Captions and alt text: use only what can be seen in the photo and what the site 
 
 The sizes: the wide crop is made 960, 1440 and 1920 px wide, and the phone crop 480, 720 and 1080 px wide. AVIF is the main format (about 50 KB for the 1440 px wide crop), WebP is for browsers without AVIF, and JPEG at the two smaller sizes is for very old browsers. A browser loads only one file for each plate, and only when the plate comes near the screen.
 
+## Link previews
+
+When someone shares a link in Telegram or another app, the app shows a title, a sentence and a picture. Each page already has its title and sentence (`og:title` and `og:description`), and `twitter:card` is set to `summary`, the small card that needs no picture. The picture is `assets/og.png`: the chamber of seats over the words "Students write policy. The best goes to parliament.", 1200 by 630 pixels.
+
+The picture needs the site's full address, so it is not switched on yet. When the domain is known:
+
+1. In the `<head>` of `index.html`, `team.html` and `partners.html`, find the comment that starts "Link previews". Take the lines out of the comment, and replace `https://example.org/` with the site's address. Change `twitter:card`, just above the comment, from `summary` to `summary_large_image`.
+2. In `index.html`, add `"url"` (the site's address) and `"sameAs"` (the Telegram channel link) to the block marked `application/ld+json`.
+3. The host shows `404.html` at the missing address, which can be deeper than the site's folder (`/team/`, `/a/b/page.html`). A script at the top of its `<head>` looks up the path for the folder that holds `assets/style.css` and sets that as the page's base, and a second script, where the stylesheet would be, then adds the stylesheet and the three scripts, so the styles, the date and the links work at any depth. Without JavaScript none of this runs. At a deeper address the page then shows with no styles, and every link on it, the menu bar and the footer included, points inside the missing folder (`/team/index.html`, `/team/team.html`), so each one leads to another missing page. To fix that, make every path in `404.html` start with `/`. Delete the script that sets the base, the script that adds the stylesheet and the `<noscript>` line under it, and put `<link rel="stylesheet" href="/assets/style.css">` and the three scripts (`<script src="/assets/data.js" defer></script>`, then `chamber.js` and `site.js` the same way) where the stylesheet script was. Then start every link with `/`, for example `/index.html`. If the site is not at the top of the domain, put its folder first (`/unpc/assets/style.css`).
+
+To make the picture again (for example after the h1 changes), open `tools/og.html` through a local server in a window of 1200 by 630, in the light theme, and save a screenshot of the window as `assets/og.png`. Keep it under 200 KB.
+
 ## Check these facts before you publish
 
 The text comes from UNPC emails and documents. Some of them do not agree. Make sure that each item below is correct before you publish. If an item is wrong, change the text in each place that the item names.
@@ -113,6 +130,28 @@ The text comes from UNPC emails and documents. Some of them do not agree. Make s
 - Students: the site says "500+ engaged". Make sure that this number is correct. The number is on the Home page, in the first step of the story and in the preamble.
 - The Diplomat prize: the judges' guide says a two-year subscription. The email after 4 October says one year. The site says one year. Find the correct length. The prize is on the Home page, in the first tournament and the winners caption. It is also in the partner text, in `assets/data.js` and in `partners.html`.
 - Kazakhstan: the site says that a local organizer runs the UNPC format in Kazakhstan. The partner text, in `assets/data.js` and in `partners.html`, also says that this competition is for high school students. Make sure that both statements are correct.
-- Contact: every page shows tashpulatovo211@gmail.com. This is also the founder's own address (see `organizers` in `assets/data.js`). Decide if it can stay the public contact. If UNPC gets its own address, change `config.email` in `assets/data.js`. The three HTML files also show the address as text for visitors without JavaScript. Change it there too.
+- Contact: every page shows tashpulatovo211@gmail.com. This is also the founder's own address (see `organizers` in `assets/data.js`). Decide if it can stay the public contact. If UNPC gets its own address, change `config.email` in `assets/data.js`. The four HTML files (index, team, partners and 404) also show the address as text for visitors without JavaScript. Change it there too.
 - The winners photo in Article 6: the site does not say which Sunday it is from or who is in it, and it says nothing about the man on the left, who holds no certificate. Confirm which Sunday it is from, and whether a dated caption or the names of the people in it can be added. Write them into the `caption` (and the `alt`, if names are added) in `tools/plates.json`, and in the markup in `index.html`. Do not move it to the first tournament's winners slot: that slot's caption names Young Policy Leaders, and the photo also shows a best speaker and a man with no certificate.
 - Consent: make sure that everyone in the winners photo, and in any photo added later, agreed to appear on the site. If someone did not, take the photo out (delete its `<figure class="photo-plate">` from `index.html`) until a photo without them is ready.
+
+### Questions for UNPC
+
+The answers to these questions decide text that the site cannot say yet. Ask UNPC, and add each answer only once it is confirmed.
+
+- Cost: is taking part free for students and schools? The answer decides a line that says what it costs, and an answer in a questions section.
+- Time and place: what time does a Sunday start and end, and where are the coming Sundays held (the address)?
+- Who can enter: which grades or ages can enter? Only schools in Tashkent, or other cities too?
+- Language: in which language do teams prepare and present?
+- Registering: what should a registration email contain (for example the name, school and grade)? Is there a deadline or a limit on places? Does UNPC reply to confirm?
+- What to bring: what should students bring? May they use phones or the internet during the hour of preparation?
+- Numbers: confirm "500+ students engaged" and "100+ volunteer organizers" (one document says 50+), with exact counts and their dates if UNPC has them. See "Organizers" and "Students" above for where the numbers are.
+- The Diplomat: is the prize a one-year or a two-year subscription? See "The Diplomat prize" above.
+- Privacy: who keeps the registration emails, and for how long? Does a student under 18 need a parent's consent? Did everyone in the winners photo agree to appear?
+- The address and the channel: what is the site's domain, and what is the Telegram channel link? They are needed for the link previews (see "Link previews"), the address in `index.html` and `config.telegramUrl` in `assets/data.js`.
+- Visitors: where do most visitors come from, and what do those posts promise? The top of the home page should say what they were promised.
+- Why UNPC began: why did Ozodbek start UNPC, in his own words? It could become a "Considering that" clause in the Preamble.
+- Quotes: can the site quote real participants, judges or the guest, by name and with their permission?
+- Open roles: do the open roles take applications, and at which address?
+- A video of the chamber: does UNPC want a video and a GIF of the chamber story? If so, where will they be posted, which Sunday should the speaker's well show, and is a dark version wanted too?
+
+A section of questions and answers for the home page was drafted and left out: its answers only repeated what the page already says. Build it once the answers above are in, with the new answers first.

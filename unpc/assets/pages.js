@@ -30,7 +30,7 @@
     return el;
   };
 
-  // Play a figure's intro once it is first on screen (motion only). Until then its seats wait, hidden.
+  // Play a figure's intro once 30% of it is on screen (motion only). Until then its seats wait, hidden.
   function introWhenSeen(el, duration) {
     if (!S.motion() || !window.IntersectionObserver) return;
     el.classList.add("is-wait");
@@ -42,7 +42,7 @@
         el.classList.add("is-intro");
         setTimeout(() => el.classList.remove("is-intro"), duration + 80);
       },
-      { threshold: 0.15 }
+      { threshold: 0.3 }
     );
     io.observe(el);
   }
@@ -66,7 +66,7 @@
       if (open === 1) tail = "; one of them is open.";
       else if (open > 1 && open === total) tail = "; all of them are open.";
       else if (open > 1) tail = "; " + word(open) + " of them are open.";
-      lede.textContent = "UNPC is student-run, with more than 100 volunteer organizers. " + cap(word(total)) + (total === 1 ? " role leads" : " roles lead") + " the work" + tail;
+      lede.textContent = "UNPC has more than 100 volunteer organizers. " + cap(word(total)) + (total === 1 ? " role leads" : " roles lead") + " the work" + tail;
     }
 
     /* ----- Role list (hero) ----- */
@@ -81,8 +81,10 @@
           if (p.placeholder)
             return '<li class="role is-open"><span class="role-mark" aria-hidden="true"></span><span class="role-txt"><span class="role-name">' + esc(p.role) + '<span class="sr-only">, open role</span></span></span></li>';
           // The person's id, not the index: closing a deep-linked dialog then returns focus to the founder section below.
+          // Out of the tab order (tabindex -1): the founder section's "More about" and each signed line below open the
+          // same dialog, so a keyboard meets one stop for each person. A pointer can still click the role.
           return (
-            '<li class="role is-signed" data-seat-row="' + esc(p.id) + '"><button type="button" class="role-btn" data-person="' + esc(p.id) + '" aria-haspopup="dialog" data-seat-for="' + esc(p.id) + '">' +
+            '<li class="role is-signed" data-seat-row="' + esc(p.id) + '"><button type="button" class="role-btn" data-person="' + esc(p.id) + '" aria-haspopup="dialog" tabindex="-1" data-seat-for="' + esc(p.id) + '">' +
             '<span class="role-mark" aria-hidden="true"></span>' + txt(esc(p.name)) + "</button></li>"
           );
         })
@@ -147,15 +149,25 @@
         const img = $("[data-fd-img]", sec);
         if (img) {
           if (founder.photo && img.getAttribute("src") !== founder.photo) img.setAttribute("src", founder.photo);
-          img.alt = "Portrait of " + founder.name;
+          // The button around it is named with the person, so the photo adds nothing to it (and without JavaScript a
+          // missing file then draws no broken image text over the initials).
+          img.alt = "";
         }
         const portrait = $("[data-fd-portrait]", sec);
         if (portrait) {
           portrait.setAttribute("aria-label", founder.name + (founder.role ? ", " + founder.role : ""));
           portrait.setAttribute("data-seat-for", founder.id);
         }
+        // The bio sits right above this button, so it offers more about the person (the dialog adds the "more" paragraph
+        // and the email). Its name is its visible text, with the first name from data.js, as Home's "Read about".
         const more = $("[data-fd-more]", sec);
-        if (more) more.setAttribute("aria-label", "Read more about " + founder.name);
+        if (more) {
+          const text = "More about " + String(founder.name || "").split(/\s+/)[0];
+          if (more.textContent !== text) more.textContent = text;
+          more.removeAttribute("aria-label");
+          // The founder's one keyboard stop, so focus on it lights the founder's seat (the role above is out of the tab order).
+          more.setAttribute("data-seat-for", founder.id);
+        }
       }
     }
 

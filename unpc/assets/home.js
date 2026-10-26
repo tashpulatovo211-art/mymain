@@ -440,7 +440,15 @@
       window.addEventListener("scrollend", once);
       t = setTimeout(once, 1400);
     };
-    $$("[data-show-case]").forEach((b) => b.addEventListener("click", () => show(b.dataset.showCase)));
+    // Each is a link to its card (#case-1 to #case-4), so it still goes to the case without JavaScript; here it brings
+    // the deck in and draws that case instead. A modified click (a new tab) keeps the link.
+    $$("[data-show-case]").forEach((b) =>
+      b.addEventListener("click", (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        show(b.dataset.showCase);
+      })
+    );
     return show;
   }
 
@@ -453,6 +461,7 @@
     const sheet = $("[data-sheet]");
     if (!sheet) return null;
     const inputs = $$('input[type="range"]', sheet);
+    inputs.forEach((inp) => { inp.disabled = false; }); // shipped disabled: without JS the totals cannot follow
     const totals = { A: $('[data-total="A"]', sheet), B: $('[data-total="B"]', sheet) };
     const rings = { A: $(".st-a .ring", sheet), B: $(".st-b .ring", sheet) };
     const verdict = $("[data-verdict]", sheet);
@@ -498,7 +507,7 @@
         w = qa > qb ? "A" : "B";
         text = "Tied at " + a + ". Team " + w + " wins on quality of the solution, " + Math.max(qa, qb) + " to " + Math.min(qa, qb) + ".";
       } else {
-        text = "Tied at " + a + ", and level on quality of the solution too. The rubric has no further tie-break.";
+        text = "Tied at " + a + ", and level on quality of the solution too. The rubric has no further rule for a tie.";
       }
       if (verdict.textContent !== text) verdict.textContent = text;
       if (tag) tag.classList.toggle("is-off", a !== b);
@@ -552,7 +561,7 @@
     const first = String(founder.name || "").split(/\s+/)[0];
     let html =
       '<div class="founder">' +
-      '<button type="button" class="portrait-btn founder-portrait" data-person="0" aria-haspopup="dialog" aria-label="' + esc(founder.name + ", " + founder.role) + '">' +
+      '<button type="button" class="portrait-btn founder-portrait" data-person="0" aria-haspopup="dialog" aria-label="' + esc(founder.name + ", " + founder.role) + '" tabindex="-1">' +
       S.portraitMarkup(founder, { alt: "" }) +
       "</button>" +
       '<div class="founder-sig">' +
@@ -586,7 +595,7 @@
       if (open === 1) tail = "; one of them is open.";
       else if (open > 1 && open === total) tail = "; all of them are open.";
       else if (open > 1) tail = "; " + w(open) + " of them are open.";
-      sub.textContent = "UNPC is student-run, with more than 100 volunteer organizers. " + w(total).replace(/^./, (c) => c.toUpperCase()) + (total === 1 ? " role leads" : " roles lead") + " the work" + tail;
+      sub.textContent = "UNPC has more than 100 volunteer organizers. " + w(total).replace(/^./, (c) => c.toUpperCase()) + (total === 1 ? " role leads" : " roles lead") + " the work" + tail;
     }
     box.innerHTML = html;
   }

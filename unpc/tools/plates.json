@@ -10,7 +10,7 @@
       "alt": "Certificates that read Winning team and Best speaker, held up in front of a whiteboard and a screen.",
       "caption": {
         "title": "Winning team and best speaker.",
-        "text": "Certificates from an award ceremony. The screen behind them has a one-hour timer and a wheel of names open."
+        "text": "Certificates from an award ceremony. The\u00a0screen behind them has tabs open for an hour timer and a wheel of names."
       },
       "grade": {
         "wall": { "hue": [8, 36], "sat": [0.62, 0.74], "desaturate": 0.18, "ev": -0.12 },
@@ -40,7 +40,7 @@
           "widths": [480, 720, 1080],
           "jpeg": [480, 720],
           "alt": "Three people stand in front of a whiteboard and a screen. Two hold certificates that read Winning team, and one holds a certificate that reads Best speaker.",
-          "caption": "Certificates from an award ceremony. The screen behind them has a one-hour timer open."
+          "caption": "Certificates from an award ceremony. The screen behind them has a tab open for an hour timer."
         }
       }
     }

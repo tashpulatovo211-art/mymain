@@ -49,8 +49,8 @@
     --seat: #8fa3ab; --seat-faint: #2c3d44; --fill-azure: #3bbad3; --fill-green: #45c964;
     --rub-0: #c4ecf3; --rub-1: #8fd6e4; --rub-2: #58c0d5; --rub-3: #2ea4bd; --rub-4: #1f8aa1; --rub-5: #1b748a;
     --plan-ln: #4d6670; --sheet-tint: #dce3e7;
-    --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(0, 0, 0, .6);
-    --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -30px rgba(0, 0, 0, .7);
+    --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(2, 8, 11, .6);
+    --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -30px rgba(2, 8, 11, .7);
     --img-filter: saturate(.85) brightness(.9); --plate-dim: .1;
     color-scheme: dark;
   }
@@ -63,8 +63,8 @@
   --seat: #8fa3ab; --seat-faint: #2c3d44; --fill-azure: #3bbad3; --fill-green: #45c964;
   --rub-0: #c4ecf3; --rub-1: #8fd6e4; --rub-2: #58c0d5; --rub-3: #2ea4bd; --rub-4: #1f8aa1; --rub-5: #1b748a;
   --plan-ln: #4d6670; --sheet-tint: #dce3e7;
-  --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(0, 0, 0, .6);
-  --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -30px rgba(0, 0, 0, .7);
+  --shadow-card: 0 1px 0 var(--line), 0 18px 40px -24px rgba(2, 8, 11, .6);
+  --shadow-dialog: 0 1px 0 var(--line), 0 40px 90px -30px rgba(2, 8, 11, .7);
   --img-filter: saturate(.85) brightness(.9); --plate-dim: .1;
   color-scheme: dark;
 }
@@ -75,47 +75,51 @@
   --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
   --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
 
-  --t-hero: 360 clamp(40px, 1.6rem + 4.2vw, 80px)/1.04 var(--serif);
-  --t-h2: 380 clamp(34px, 1.5rem + 2.4vw, 56px)/1.06 var(--serif);
-  --t-step: 400 30px/1.12 var(--serif);
-  --t-step-off: 400 20px/1.25 var(--serif);
-  --t-clause: 400 21px/1.5 var(--serif);
-  --t-paper: 400 19px/1.55 var(--serif);
-  --t-body: 400 17px/1.6 var(--sans);
-  --t-small: 400 14.5px/1.5 var(--sans);
-  --t-micro: 500 13px/1.4 var(--sans);
-  --t-figure: 330 56px/1 var(--serif);
-  --t-clock: 300 48px/1 var(--serif);
-  --t-date: 300 clamp(56px, 11vw, 168px)/.98 var(--serif);
-  --t-well: 400 26px/1.15 var(--serif);
+  /* Sizes in rem (at the default 16px: hero 40 to 80px, h2 32 to 56, step 30, step off 20, clause 21, paper 19, body 17,
+     small 14.5, micro 13, ui 15, figure 56, clock 48, date 56 to 168, well 26), so a reader's larger default text scales
+     the type and the document grid together. Hairlines, the capsules and canvas text stay in px. */
+  --t-hero: 360 clamp(2.5rem, 1.6rem + 4.2vw, 5rem)/1.04 var(--serif);
+  --t-h2: 380 clamp(2rem, 1.5rem + 2.4vw, 3.5rem)/1.06 var(--serif); /* 32px up to 333px wide: "The first tournament" fits one line at 320 */
+  --t-step: 400 1.875rem/1.12 var(--serif);
+  --t-step-off: 400 1.25rem/1.25 var(--serif);
+  --t-clause: 400 1.3125rem/1.5 var(--serif);
+  --t-paper: 400 1.1875rem/1.55 var(--serif);
+  --t-body: 400 1.0625rem/1.6 var(--sans);
+  --t-small: 400 .90625rem/1.5 var(--sans);
+  --t-micro: 500 .8125rem/1.4 var(--sans);
+  --t-ui: 500 .9375rem/1.2 var(--sans); /* buttons and nav links; the nav's Register and .btn-sm stay at 14px */
+  --t-figure: 330 3.5rem/1 var(--serif);
+  --t-clock: 300 3rem/1 var(--serif);
+  --t-date: 300 clamp(3.5rem, 11vw, 10.5rem)/.98 var(--serif);
+  --t-well: 400 1.625rem/1.15 var(--serif);
   --tr-hero: -0.012em;
   --tr-h2: -0.01em;
   --tr-date: -0.02em;
 
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px; --s9: 96px; --s10: 128px;
   --gutter: clamp(16px, 4.2vw, 56px);
-  --max: 1240px;
+  --max: 77.5rem; /* 1240px */
   --nav-h: 64px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --pad-l: max(var(--gutter), env(safe-area-inset-left, 0px));
   --pad-r: max(var(--gutter), env(safe-area-inset-right, 0px));
   --section-y: clamp(80px, 9vw, 128px);
-  --col-m: 168px; --col-t: 640px; --col-n: 248px; --col-gap: 48px;
+  --col-m: 10.5rem; --col-t: 40rem; --col-n: 15.5rem; --col-gap: 3rem; /* 168, 640, 248 and 48px */
   --doc-w: calc(var(--col-m) + var(--col-t) + var(--col-n) + 2 * var(--col-gap));
-  --r-btn: 6px; --r-plate: 6px; --r-card: 8px; --r-sheet: 6px; --r-dialog: 14px; --r-bottom-sheet: 16px;
+  --r-btn: 6px; --r-plate: 6px; --r-card: 8px; --r-sheet: 6px; --r-dialog: 16px; --r-bottom-sheet: 16px;
   --ease-out: cubic-bezier(.2, .7, .1, 1);
   --ease-io: cubic-bezier(.65, 0, .35, 1);
 }
 @media (max-width: 479.98px) {
   :root {
-    --t-step: 400 24px/1.15 var(--serif);
-    --t-clause: 400 18.5px/1.5 var(--serif);
-    --t-paper: 400 17.5px/1.55 var(--serif);
-    --t-body: 400 16px/1.6 var(--sans);
-    --t-figure: 330 44px/1 var(--serif);
-    --t-clock: 300 40px/1 var(--serif);
-    --t-well: 400 20px/1.15 var(--serif);
+    --t-step: 400 1.5rem/1.15 var(--serif);
+    --t-clause: 400 1.15625rem/1.5 var(--serif);
+    --t-paper: 400 1.09375rem/1.55 var(--serif);
+    --t-body: 400 1rem/1.6 var(--sans);
+    --t-figure: 330 2.75rem/1 var(--serif);
+    --t-clock: 300 2.5rem/1 var(--serif);
+    --t-well: 400 1.25rem/1.15 var(--serif);
   }
 }
 
@@ -149,6 +153,8 @@ strong, b { font-weight: 600; }
 ::selection { background: var(--azure-soft); color: var(--ink); }
 [hidden] { display: none !important; }
 [id] { scroll-margin-top: calc(var(--nav-h) + var(--safe-t) + 16px); }
+/* Team and Partners: an in-page link glides, for that click only (site.js). Never on for the whole page. */
+html.is-gliding { scroll-behavior: smooth; }
 
 /* ---------- Type helpers ---------- */
 
@@ -156,18 +162,13 @@ strong, b { font-weight: 600; }
 .t-hero { font: var(--t-hero); letter-spacing: var(--tr-hero); font-optical-sizing: auto; text-wrap: balance; }
 .t-h2 { font: var(--t-h2); letter-spacing: var(--tr-h2); font-optical-sizing: auto; text-wrap: balance; }
 .t-step { font: var(--t-step); font-optical-sizing: auto; }
-.t-step-off { font: var(--t-step-off); color: var(--ink-2); font-optical-sizing: auto; }
 .t-clause { font: var(--t-clause); font-optical-sizing: auto; text-wrap: pretty; font-variant-numeric: oldstyle-nums; }
 .t-paper { font: var(--t-paper); font-optical-sizing: auto; text-wrap: pretty; font-variant-numeric: oldstyle-nums; }
 .t-body { font: var(--t-body); }
-.t-small { font: var(--t-small); }
 .t-micro { font: var(--t-micro); color: var(--ink-3); font-variant-numeric: lining-nums tabular-nums; }
 .t-figure { font: var(--t-figure); font-variant-numeric: lining-nums; font-optical-sizing: auto; }
 .t-clock { font: var(--t-clock); font-variant-numeric: lining-nums tabular-nums; font-optical-sizing: auto; }
 .t-date { font: var(--t-date); letter-spacing: var(--tr-date); font-variant-numeric: lining-nums; font-optical-sizing: auto; }
-.t-well { font: var(--t-well); font-variant-numeric: lining-nums; font-optical-sizing: auto; }
-.nums { font-variant-numeric: lining-nums tabular-nums; }
-.oldstyle { font-variant-numeric: oldstyle-nums; }
 .ink-2 { color: var(--ink-2); }
 .ink-3 { color: var(--ink-3); }
 
@@ -200,7 +201,7 @@ main:focus, main:focus-visible { outline: none; }
 }
 .doc .m { grid-column: 1; text-align: right; min-width: 0; }
 .doc .b { grid-column: 2; min-width: 0; }
-.doc .n { grid-column: 3; min-width: 0; font: var(--t-small); color: var(--ink-2); }
+.doc .n { grid-column: 3; min-width: 0; font: var(--t-small); color: var(--ink-2); text-wrap: balance; }
 .doc .bn { grid-column: 2 / -1; min-width: 0; }
 .doc .mb { grid-column: 1 / 3; min-width: 0; }
 .doc .all { grid-column: 1 / -1; min-width: 0; }
@@ -253,7 +254,7 @@ a:hover { color: var(--azure); text-decoration-color: currentColor; }
   border-radius: var(--r-btn);
   background: var(--azure);
   color: var(--on-azure);
-  font: 500 15px/1.2 var(--sans);
+  font: var(--t-ui);
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -262,6 +263,9 @@ a:hover { color: var(--azure); text-decoration-color: currentColor; }
 }
 .btn:hover { color: var(--on-azure); background: color-mix(in srgb, var(--azure) 88%, var(--ink)); }
 .btn:active { transform: translateY(1px); }
+/* Every control gives the same 1px under a press. A portrait button drops back from its 2px hover lift instead
+   (.portrait-btn, .sign-btn below). */
+.icon-btn:active, .pip:active, .step-btn:active, .case-link:active, .role-btn:active, .sign-btn:active, .sig-signed:active { transform: translateY(1px); }
 .btn-quiet, .btn.btn-quiet {
   background: transparent;
   color: var(--ink);
@@ -284,7 +288,7 @@ a:hover { color: var(--azure); text-decoration-color: currentColor; }
   text-underline-offset: .22em;
   text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
   cursor: pointer;
-  transition: color .18s var(--ease-out), text-decoration-color .18s var(--ease-out);
+  transition: color .18s var(--ease-out), text-decoration-color .18s var(--ease-out), transform .18s var(--ease-out);
 }
 .btn-link:hover { color: var(--azure); text-decoration-color: currentColor; }
 
@@ -300,7 +304,7 @@ a:hover { color: var(--azure); text-decoration-color: currentColor; }
   color: var(--ink);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color .18s var(--ease-out);
+  transition: background-color .18s var(--ease-out), transform .18s var(--ease-out);
 }
 .icon-btn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
 .icon-btn svg { width: 20px; height: 20px; }
@@ -311,7 +315,7 @@ a:hover { color: var(--azure); text-decoration-color: currentColor; }
 :focus-visible {
   outline: 2px solid var(--azure);
   outline-offset: 3px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 .btn:focus-visible, .icon-btn:focus-visible { border-radius: var(--r-btn); }
 .icon-btn:focus-visible { border-radius: 50%; }
@@ -339,7 +343,7 @@ input[type="range"]:focus-visible { outline-offset: 4px; }
   border-radius: var(--r-btn);
   background: var(--azure);
   color: var(--on-azure);
-  font: 500 15px/1.2 var(--sans);
+  font: var(--t-ui);
   text-decoration: none;
   transform: translateY(calc(-100% - 24px - var(--safe-t)));
 }
@@ -395,7 +399,7 @@ input[type="range"]:focus-visible { outline-offset: 4px; }
   padding: 8px 10px;
   border-radius: var(--r-btn);
   color: var(--ink-2);
-  font: 500 15px/1.2 var(--sans);
+  font: var(--t-ui);
   text-decoration: none;
 }
 .nav-links a:hover { color: var(--ink); }
@@ -411,9 +415,13 @@ input[type="range"]:focus-visible { outline-offset: 4px; }
 }
 .nav-tools { display: flex; align-items: center; gap: var(--s2); }
 .nav-tools .btn { min-height: 36px; padding: 8px 14px; font-size: 14px; }
-/* While the Next block is on screen, its own button is the one solid button in view. */
-.nav-tools .btn.is-quiet, .nav-tools .btn.is-hero-quiet { background: transparent; color: var(--ink); border-color: var(--line-strong); }
-.nav-tools .btn.is-quiet:hover, .nav-tools .btn.is-hero-quiet:hover { border-color: var(--ink-3); }
+/* The nav's Register steps back (site.js, story.js) while another solid button that does its job is on screen, and on
+   Partners beside the partner ask. Without JavaScript nothing follows the view, so it stays quiet: the hero's "Register
+   for Sunday" and the Next block's "Register by email" are then the only solid buttons, never two in one view. */
+.nav-tools .btn.is-quiet, .nav-tools .btn.is-hero-quiet,
+html:not(.js) .nav-tools .btn { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.nav-tools .btn.is-quiet:hover, .nav-tools .btn.is-hero-quiet:hover,
+html:not(.js) .nav-tools .btn:hover { border-color: var(--ink-3); }
 
 .theme-toggle .half { transform-origin: 10px 10px; transition: transform .5s var(--ease-io); }
 @media (prefers-color-scheme: dark) {
@@ -451,7 +459,7 @@ input[type="range"]:focus-visible { outline-offset: 4px; }
   flex: none;
   width: 10px;
   height: 6px;
-  border-radius: 3px;
+  border-radius: 999px;
   background: transparent;
 }
 .menu a[aria-current="page"] { color: var(--ink); }
@@ -472,6 +480,25 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
 }
 @media (min-width: 720px) {
   .menu { display: none !important; }
+}
+
+/* Without JavaScript, a control that only the script runs is not shown: the theme toggle (the theme follows the system),
+   the menu button, Copy (the address stays selectable), the score sheet's "Back to the example" and the text buttons that
+   open the organizer dialog. Triggers that
+   carry content (the story's step titles, the portraits, Team's roles) stay, but take no pointer. On phones the bar shows
+   the three page links in place of the menu, and below 480px, where Register does not fit beside them, only the links:
+   every page ends with the Next block. */
+html:not(.js) :is(.theme-toggle, .menu-btn, [data-copy], [data-sheet-reset], .founder-more, .fd-act) { display: none; }
+html:not(.js) :is(.step-btn, .portrait-btn, .role-btn) { pointer-events: none; }
+html:not(.js) :is(.tp-fig, .next-figure) { display: none; }
+html:not(.js) .role-who { text-decoration: none; }
+@media (max-width: 719.98px) {
+  html:not(.js) .nav-links { display: flex; gap: 0; margin-right: 0; }
+  html:not(.js) .nav-links a { padding-inline: 7px; }
+  html:not(.js) .nav-links a[aria-current="page"]::after { left: 7px; right: 7px; }
+}
+@media (max-width: 479.98px) {
+  html:not(.js) .nav-tools { display: none; }
 }
 
 /* ---------- 6.6 Next tournament ---------- */
@@ -519,8 +546,11 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
   user-select: all;
   font-variant-numeric: lining-nums;
 }
-.contact-actions { display: inline-flex; flex-wrap: wrap; gap: var(--s2); }
+.contact-actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s5); }
 .btn[data-copy] { min-width: 5.5em; }
+/* The Next block: one solid "Register by email", then "Copy address" as a text button set like the hero's
+   "How a Sunday works": the same type, and a 44px target in 40px of layout on every pointer. */
+.contact-actions .btn-link { padding: 13px 2px; margin-block: -2px; font: var(--t-ui); }
 
 @media (max-width: 1140px) {
   .next .next-figure { margin-top: var(--s7); max-width: 340px; padding-bottom: 0; }
@@ -538,8 +568,8 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
 }
 .footer .row { row-gap: var(--s5); }
 .footer-copy { font: 400 13px/1.45 var(--sans); color: var(--ink-3); padding-top: .2em; }
-.footer-name { font: 400 18px/1.35 var(--serif); font-optical-sizing: auto; }
-.footer-text { margin-top: var(--s2); font: 400 14px/1.55 var(--sans); color: var(--ink-2); max-width: 46ch; }
+.footer-name { font: 400 18px/1.35 var(--serif); font-optical-sizing: auto; text-wrap: balance; }
+.footer-text { margin-top: var(--s2); font: var(--t-small); color: var(--ink-2); max-width: 46ch; }
 /* The footer gives the address as a plain mail link: the Next block just above it has the Copy button. */
 .footer-mail { margin-top: var(--s5); font: 400 15px/1.4 var(--sans); overflow-wrap: anywhere; font-variant-numeric: lining-nums; }
 .footer-links { display: grid; gap: var(--s2); font: 400 15px/1.4 var(--sans); }
@@ -556,6 +586,7 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
   .btn-sm, .nav-tools .btn { min-height: 44px; }
   .brand { padding-block: 14px; margin-block: -8px; }
   .footer-links a, .footer-mail a, .more-link a, .btn-link, .partner-link a { display: inline-block; padding-block: 12px; margin-block: -12px; }
+  .btn-link:active { transform: translateY(1px); }
   .footer-links { gap: 8px 24px; }
 }
 @media (max-width: 760px) {
@@ -591,11 +622,17 @@ html.motion .menu:not([hidden]) { animation: menu-in .26s var(--ease-out); }
   border-radius: inherit;
   opacity: 0;
   filter: var(--img-filter);
-  transition: opacity .6s var(--ease-out);
+  transition: opacity .6s var(--ease-out), filter .8s var(--ease-out);
 }
+/* A photo resolves from blur to sharp as it fades in, as a photo plate does from its swatch. Without the script it simply
+   shows, sharp; under reduced motion it snaps. */
+html.js .plate:not(.has-image) > img { filter: var(--img-filter) blur(14px) saturate(.6); }
 .plate.has-image > img { opacity: 1; }
 .plate.has-image > :not(img) { visibility: hidden; }
-html:not(.js) .plate > img { opacity: 1; }
+html:not(.js) .plate > img { opacity: 1; overflow: hidden; }
+/* Without the script a missing file stays in the page. A pseudo element shows only on an image that failed to load, so
+   this one pushes the browser's broken image mark (and any alt text) out of the frame, and the stand-in shows instead. */
+html:not(.js) .plate > img::before { content: ""; display: block; height: 100%; }
 
 /* ---------- Photo plates (README, "Photo plates") ---------- */
 
@@ -670,8 +707,8 @@ html.motion .photo-plate.is-near .pp-img { will-change: transform; }
    takes the plate out once it is below the screen. */
 .photo-plate.is-failed .pp-img { visibility: hidden; }
 .photo-plate.is-missing { display: none; }
-.pp-cap { margin-top: 14px; }
-.pp-cap-text { max-width: 60ch; font: var(--t-small); color: var(--ink-2); text-wrap: pretty; }
+.pp-cap { margin-top: var(--s3); }
+.pp-cap-text { max-width: 60ch; font: var(--t-small); color: var(--ink-2); text-wrap: balance; }
 .pp-cap-text b { color: var(--ink); font-weight: 600; }
 
 /* Plan line drawings (room-plan stand-ins). */
@@ -681,6 +718,7 @@ html.motion .photo-plate.is-near .pp-img { will-change: transform; }
 .plan .tb { fill: var(--fill-green); }
 .plan .jd { fill: var(--seat); }
 .plan .rule { fill: none; stroke: var(--red); stroke-width: 1.25; vector-effect: non-scaling-stroke; }
+.plan .sheet-fill { fill: var(--wash); } /* the fanned certificates in the ceremony plan cover the lines under them */
 
 /* Portrait: 4:5 azure-soft plate with initials. */
 .portrait {
@@ -716,15 +754,16 @@ html.motion .photo-plate.is-near .pp-img { will-change: transform; }
 }
 .portrait-btn .plate { transition: transform .5s var(--ease-out); }
 .portrait-btn:hover .plate { transform: translateY(-2px); }
+.portrait-btn:active .plate { transform: none; }
 .portrait-btn:focus-visible { border-radius: var(--r-plate); }
 
-figure.slot figcaption, .slot-cap {
+figure.slot figcaption {
   margin-top: var(--s3);
   font: 400 14.5px/1.5 var(--sans);
   color: var(--ink-2);
-  text-wrap: pretty;
+  text-wrap: balance;
 }
-figure.slot figcaption b, figure.slot figcaption strong, .slot-cap b, .slot-cap strong { color: var(--ink); font-weight: 500; }
+figure.slot figcaption b, figure.slot figcaption strong { color: var(--ink); font-weight: 500; }
 
 /* Partner logo slot: typeset name until the logo file loads. */
 .logo-slot { position: relative; display: block; min-height: 40px; }
@@ -766,7 +805,7 @@ dialog.person::backdrop {
 }
 .person-photo { width: 100%; grid-column: 1; grid-row: 1; }
 .person-body { grid-column: 2; grid-row: 1; padding-top: 4px; padding-right: 20px; min-width: 0; }
-.person-role { font: 500 14px/1.4 var(--sans); color: var(--ink-2); }
+.person-role { font: var(--t-small); font-weight: 500; line-height: 1.4; color: var(--ink-2); }
 .person-name {
   margin-top: var(--s2);
   font: 400 clamp(30px, 2.4vw, 42px)/1.08 var(--serif);
@@ -914,7 +953,7 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
 .hero-title .hl { display: block; }
 .hero-lede {
   max-width: 52ch;
-  margin: 22px auto 0;
+  margin: var(--s5) auto 0;
   font: var(--t-body);
   color: var(--ink-2);
   text-wrap: pretty;
@@ -924,13 +963,13 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px 28px;
-  margin-top: 28px;
+  gap: var(--s3) var(--s5);
+  margin-top: var(--s5);
 }
 .hero-link {
   display: inline-block;
   padding: 11px 2px;
-  font: 500 15px/1.2 var(--sans);
+  font: var(--t-ui);
 }
 /* Touch: 44px tall, in the same 40px of layout */
 @media (pointer: coarse) { .hero-link { padding-block: 13px; margin-block: -2px; } }
@@ -963,6 +1002,45 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
 .story.is-static.is-short .hero-lede { margin-top: 10px; font-size: 14.5px; line-height: 1.45; }
 .story.is-static.is-short .hero-actions { margin-top: 14px; }
 
+/* story.js did not start (blocked, missing or failed to run): the pre-paint script saw no story mode just after
+   DOMContentLoaded, turned motion off and set html.story-late. The story then reads as the static one with nothing to
+   draw, so its empty figure plates go, and the well sits above the h1 instead of where the chamber would be. The same
+   holds without JavaScript, where nothing draws the figures either. */
+html.story-late .story:not(.is-static) .hero-figure,
+html.story-late .story:not(.is-static) .step-fig,
+html:not(.js) .story .hero-figure,
+html:not(.js) .story .step-fig { display: none; }
+html.story-late .story:not(.is-static) .well,
+html:not(.js) .story .well { position: relative; left: auto; top: auto; transform: none; margin: 0 auto var(--s4); }
+/* With nothing drawn, each step's text sits in the body column of the document grid (.doc .row .b), with the left edge
+   and measure of the Preamble below, and the sentences and legend swatches that point at a figure give way to a plain
+   one (.with-fig, .without-fig in the step copy). */
+.without-fig { display: none; }
+html.story-late .story:not(.is-static) .with-fig,
+html:not(.js) .story .with-fig,
+html.story-late .story:not(.is-static) .legend i,
+html:not(.js) .story .legend i { display: none; }
+html.story-late .story:not(.is-static) .without-fig,
+html:not(.js) .story .without-fig { display: inline; }
+html.story-late .story:not(.is-static) .step,
+html:not(.js) .story .step {
+  grid-template-columns: var(--col-m) minmax(0, var(--col-t)) var(--col-n);
+  column-gap: var(--col-gap);
+  justify-content: center;
+}
+html.story-late .story:not(.is-static) :is(.step-h, .step-body),
+html:not(.js) .story :is(.step-h, .step-body) { grid-column: 2; }
+@media (max-width: 1140px) {
+  html.story-late .story:not(.is-static) .step,
+  html:not(.js) .story .step { grid-template-columns: var(--col-m) minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  html.story-late .story:not(.is-static) .step,
+  html:not(.js) .story .step { grid-template-columns: minmax(0, 1fr); }
+  html.story-late .story:not(.is-static) :is(.step-h, .step-body),
+  html:not(.js) .story :is(.step-h, .step-body) { grid-column: 1; }
+}
+
 /* The five steps as rows: text left (5 of 12), figure right (7 of 12). */
 .stepper {
   display: grid;
@@ -994,12 +1072,13 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
   color: var(--ink);
   text-align: left;
   -webkit-tap-highlight-color: transparent;
+  transition: transform .18s var(--ease-out);
 }
 .step-n { display: block; font: var(--t-micro); color: var(--ink-3); font-variant-numeric: lining-nums tabular-nums; }
 .step-cap { display: none; }
 .step-title {
   display: block;
-  margin-top: 10px;
+  margin-top: var(--s3);
   font: 380 clamp(30px, 1.2rem + 1.5vw, 40px)/1.1 var(--serif);
   letter-spacing: -0.01em;
   font-optical-sizing: auto;
@@ -1009,9 +1088,9 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
 .step-body p { text-wrap: pretty; }
 
 /* Step 3's legend: one row per criterion, its points on the right. */
-.legend { display: grid; gap: 7px; max-width: 26em; margin-top: 18px; font: 400 15px/1.35 var(--sans); color: var(--ink-2); }
+.legend { display: grid; gap: var(--s2); max-width: 26em; margin-top: var(--s4); font: 400 15px/1.35 var(--sans); color: var(--ink-2); }
 .legend li { display: flex; align-items: baseline; gap: 10px; }
-.legend i { flex: none; width: 10px; height: 6px; border-radius: 3px; transform: translateY(-2px); background: var(--rub-0); }
+.legend i { flex: none; width: 10px; height: 6px; border-radius: 999px; transform: translateY(-2px); background: var(--rub-0); }
 .legend .k1 { background: var(--rub-1); }
 .legend .k2 { background: var(--rub-2); }
 .legend .k3 { background: var(--rub-3); }
@@ -1153,7 +1232,7 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
       top: 50%;
       width: 10px;
       height: 6px;
-      border-radius: 3px;
+      border-radius: 999px;
       background: var(--fill-azure);
       opacity: 0;
       transform: translateY(-50%) scaleX(.2);
@@ -1274,8 +1353,8 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
 
 .preamble .t-clause i,
 .format .t-clause i { font-style: italic; }
-.pre-open .t-clause { color: var(--ink); }
-.clauses { margin-top: 36px; }
+.pre-open .t-clause { color: var(--ink); text-wrap: balance; } /* one short line: at 320 it never leaves "Competition," alone */
+.clauses { margin-top: var(--s6); }
 .clause + .clause { margin-top: 28px; }
 .pre-fig { color: var(--ink); letter-spacing: -0.015em; }
 .pre-fig .plus { color: var(--ink-3); font-weight: 300; margin-left: .02em; }
@@ -1308,9 +1387,9 @@ html:has(dialog.person[open]) { overflow: hidden; background: color-mix(in srgb,
   margin-bottom: 10px;
   white-space: nowrap;
 }
-.daybar-name { font: 500 14px/1.3 var(--sans); color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.daybar-name { font: var(--t-small); font-weight: 500; line-height: 1.3; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
 .daybar-name .dn-short { display: none; }
-.daybar-dur { font: 400 14px/1.3 var(--sans); color: var(--ink-2); font-variant-numeric: lining-nums tabular-nums; }
+.daybar-dur { font: var(--t-small); line-height: 1.3; color: var(--ink-2); font-variant-numeric: lining-nums tabular-nums; }
 
 /* Segments are flex-grown by minutes with no gap, so the playhead maps exactly; each fill stops 2px short. */
 /* Clipped so the full-width playhead wrapper never adds sideways overflow; the margin keeps its 18px line. */
@@ -1399,8 +1478,8 @@ html:not(.js) .daybar-follows { display: none; }
   transition: color .3s var(--ease-out);
 }
 .art.is-now .art-num { color: var(--azure); }
-.art-dur { margin-top: var(--s2); font: 400 14px/1.45 var(--sans); color: var(--ink-2); font-variant-numeric: lining-nums; }
-.art .n { text-wrap: pretty; }
+.art-dur { margin-top: var(--s2); font: var(--t-small); color: var(--ink-2); font-variant-numeric: lining-nums; }
+.art .n { text-wrap: balance; }
 /* Phones: the article number hangs in its own narrow column instead of sitting above the text. */
 @media (max-width: 760px) {
   .doc .row.art { grid-template-columns: 34px minmax(0, 1fr); column-gap: var(--s3); }
@@ -1423,9 +1502,9 @@ html:not(.js) .daybar-follows { display: none; }
 .rb-min { display: none; }
 /* Narrow: the labels become a two-by-two legend, each with its colour. */
 @media (max-width: 560px) {
-  .rb-labels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3) var(--s4); margin-top: var(--s4); }
+  .rb-labels { display: grid; grid-template-columns: minmax(max-content, 1fr) minmax(0, 1fr); gap: var(--s3) var(--s4); margin-top: var(--s4); }
   .rb-labels > span { display: grid; grid-template-columns: 10px minmax(0, 1fr); column-gap: var(--s2); padding: 0; }
-  .rb-labels > span::before { content: ""; grid-row: 1; align-self: center; width: 10px; height: 6px; border-radius: 3px; background: var(--line-strong); }
+  .rb-labels > span::before { content: ""; grid-row: 1; align-self: center; width: 10px; height: 6px; border-radius: 999px; background: var(--line-strong); }
   .rb-labels .rb-a::before { background: var(--fill-azure); }
   .rb-labels .rb-b::before { background: var(--fill-green); }
   .rb-labels b, .rb-labels em { grid-column: 2; }
@@ -1449,7 +1528,7 @@ html:not(.js) .daybar-follows { display: none; }
   column-gap: var(--col-gap);
   justify-content: center;
 }
-.art > .photo-plate .pp-cap-text { grid-column: 2; max-width: var(--col-t); }
+.art > .photo-plate .pp-cap-text { grid-column: 2; max-width: min(60ch, var(--col-t)); }
 @media (max-width: 1140px) {
   .art > .photo-plate .pp-cap { grid-template-columns: var(--col-m) minmax(0, 1fr); }
 }
@@ -1525,8 +1604,8 @@ html.js .case-card[data-pos="3"] { transform: translate(-12px, 10px) rotate(-3.2
   display: flex;
   justify-content: space-between;
   gap: var(--s3);
-  padding-bottom: 12px;
-  margin-bottom: 20px;
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s5);
   border-bottom: 1px solid color-mix(in srgb, var(--red) 40%, transparent);
   font: var(--t-micro);
   color: var(--ink-3);
@@ -1542,7 +1621,7 @@ html.js .case-card[data-pos="3"] { transform: translate(-12px, 10px) rotate(-3.2
 .case-q { font: var(--t-paper); font-optical-sizing: auto; color: var(--ink); text-wrap: pretty; }
 .case-q + .case-q { margin-top: .5em; }
 .q-open { display: inline-block; margin-left: -0.42em; width: .42em; }
-.case-note { margin-top: var(--s4); font: 400 14px/1.5 var(--sans); color: var(--ink-2); }
+.case-note { margin-top: var(--s4); font: var(--t-small); color: var(--ink-2); }
 
 .deck-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3) var(--s4); padding-top: var(--s2); }
 .pips { display: flex; gap: var(--s2); }
@@ -1560,7 +1639,7 @@ html.js .case-card[data-pos="3"] { transform: translate(-12px, 10px) rotate(-3.2
   font: 500 13px/1 var(--sans);
   font-variant-numeric: lining-nums tabular-nums;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color .2s var(--ease-out), border-color .2s var(--ease-out), color .2s var(--ease-out);
+  transition: background-color .2s var(--ease-out), border-color .2s var(--ease-out), color .2s var(--ease-out), transform .18s var(--ease-out);
 }
 .pip::before { content: ""; position: absolute; inset: -9px; } /* a 44 x 44px hit area around the 28px circle (from the padding box) */
 @media (pointer: coarse) { .pips { gap: 16px; } } /* touch: 44px apart, so the hit areas do not overlap */
@@ -1571,9 +1650,9 @@ html.js .case-card[data-pos="3"] { transform: translate(-12px, 10px) rotate(-3.2
 /* The 60:00 clock: real time, red in the last five minutes. */
 .clock { padding-top: 28px; transition: opacity .3s var(--ease-out); }
 /* A draw resets the clock: it steps back while the drawn card passes over it, then returns at 60:00. */
-.deck.is-drawing .clock { opacity: 0; transition-duration: .15s; }
+.deck.is-drawing .clock { opacity: 0; transition-duration: .18s; }
 .clock-digits { color: var(--ink); transition: color .2s var(--ease-out); }
-.clock-label { margin-top: var(--s2); font: 400 14px/1.45 var(--sans); color: var(--ink-2); transition: color .2s var(--ease-out); }
+.clock-label { margin-top: var(--s2); font: var(--t-small); color: var(--ink-2); transition: color .2s var(--ease-out); }
 .clock.is-late .clock-digits,
 .clock.is-late .clock-label { color: var(--red); }
 .clock-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s4); margin-top: var(--s5); }
@@ -1634,12 +1713,12 @@ html:not(.js) .clock-actions { display: none; }
   flex: none;
   width: 10px;
   height: 6px;
-  border-radius: 3px;
+  border-radius: 999px;
   background: var(--fill-azure);
 }
 .th-b::before, .cell-b .cell-team::before, .st-b .cell-team::before { background: var(--fill-green); }
 
-.crit { padding: 20px 0 18px; border-top: 1px solid var(--line); align-items: start; }
+.crit { padding: var(--s4) 0 var(--s5); border-top: 1px solid var(--line); align-items: start; }
 .crit-name { font: 500 15px/1.35 var(--sans); color: var(--ink); text-wrap: balance; }
 /* "out of N", then the tie tag on the same line: when the tag is hidden its space sits unseen at the line end. */
 .crit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 2px; min-height: 20px; }
@@ -1647,8 +1726,9 @@ html:not(.js) .clock-actions { display: none; }
 .tie-tag {
   padding: 1px 6px 2px;
   border: 1px solid var(--azure);
-  border-radius: 3px;
-  font: 500 12px/1.3 var(--sans);
+  border-radius: 2px;
+  font: var(--t-micro);
+  line-height: 1.3;
   color: var(--azure);
   white-space: nowrap;
   transition: opacity .24s var(--ease-out);
@@ -1657,7 +1737,7 @@ html:not(.js) .clock-actions { display: none; }
 .crit-desc { margin-top: 8px; font: 400 14px/1.5 var(--sans); color: var(--ink-2); text-wrap: pretty; }
 
 .cell { min-width: 0; }
-.cell-team { display: none; align-items: center; gap: var(--s2); font: 500 12.5px/1.3 var(--sans); color: var(--ink-2); }
+.cell-team { display: none; align-items: center; gap: var(--s2); font: var(--t-micro); line-height: 1.3; color: var(--ink-2); }
 .cell-val {
   display: block;
   padding-left: 8px; /* level with tick zero, which sits 8px in (half the thumb) */
@@ -1720,7 +1800,7 @@ html:not(.js) .clock-actions { display: none; }
   border-radius: 50%;
   background: var(--paper);
   box-shadow: 0 1px 2px rgba(19, 33, 42, .14);
-  transition: transform .15s var(--ease-out), box-shadow .15s var(--ease-out);
+  transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
 }
 .scale input::-moz-range-thumb {
   box-sizing: border-box;
@@ -1729,9 +1809,14 @@ html:not(.js) .clock-actions { display: none; }
   border: 1.5px solid var(--ink);
   border-radius: 50%;
   background: var(--paper);
+  box-shadow: 0 1px 2px rgba(19, 33, 42, .14);
+  transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
 }
+/* Hover and press, kept as separate rules per engine: a selector list with an unknown pseudo element drops the rule. */
 .scale input:hover::-webkit-slider-thumb { transform: scale(1.12); }
 .scale input:active::-webkit-slider-thumb { transform: scale(1.2); }
+.scale input:hover::-moz-range-thumb { transform: scale(1.12); }
+.scale input:active::-moz-range-thumb { transform: scale(1.2); }
 /* Focus ring on the thumb itself, in the same 2px azure as everywhere else. */
 .scale input:focus-visible { outline: none; }
 .scale input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--azure); }
@@ -1823,9 +1908,8 @@ html:not(.js) .clock-actions { display: none; }
 
 .record { margin-top: var(--s7); }
 .record .row + .row { margin-top: var(--s4); }
-.record dt { font: 400 14px/1.5 var(--sans); color: var(--ink-2); }
+.record dt { font: var(--t-small); color: var(--ink-2); }
 .record dd { text-wrap: pretty; }
-.nowrap { white-space: nowrap; }
 @media (max-width: 760px) {
   .record .row + .row { margin-top: var(--s5); }
   .record dt { margin-bottom: 2px; font-size: 13px; }
@@ -1837,7 +1921,6 @@ html:not(.js) .clock-actions { display: none; }
 .shot { flex: var(--r) 1 0; min-width: 0; }
 .shot .plate > img { object-fit: cover; }
 .plan .soft { opacity: .55; }
-.plan .plan-narrow, .plate > .plan-narrow { display: none; }
 
 /* The winners: a typographic plate. No member dots, because the team size is unknown. */
 .shot-winners .plate { container-type: inline-size; }
@@ -1871,7 +1954,8 @@ html:not(.js) .clock-actions { display: none; }
   .shot-winners .wt-name { font-size: 7.8cqi; }
 }
 
-/* The four cases: buttons that open each case in the deck. */
+/* The four cases: links to each case's card, which home.js turns into drawing that case in the deck. As wide as their
+   text, so the empty end of a row is no target. */
 .cases-row { margin-top: clamp(64px, 8vw, 112px); }
 .case-links { display: grid; gap: var(--s3); counter-reset: none; }
 .case-link {
@@ -1879,6 +1963,7 @@ html:not(.js) .clock-actions { display: none; }
   grid-template-columns: 1.4em minmax(0, 1fr);
   align-items: baseline;
   gap: var(--s2);
+  width: fit-content;
   padding: 2px 0;
   border: 0;
   background: none;
@@ -1886,8 +1971,10 @@ html:not(.js) .clock-actions { display: none; }
   font: 400 19px/1.45 var(--serif);
   font-optical-sizing: auto;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: transform .18s var(--ease-out);
 }
 .case-link-n { color: var(--ink-3); font-variant-numeric: lining-nums tabular-nums; }
 .case-link-t {
@@ -1908,7 +1995,7 @@ html:not(.js) .clock-actions { display: none; }
 .founder-portrait { flex: none; width: 160px; }
 .founder-sig { flex: 1 1 auto; min-width: 0; max-width: 420px; padding-bottom: 2px; }
 .founder-name {
-  padding-bottom: 10px;
+  padding-bottom: var(--s3);
   border-bottom: 1px solid var(--line-strong);
   font: 400 28px/1.15 var(--serif);
   font-optical-sizing: auto;
@@ -1946,6 +2033,7 @@ html:not(.js) .clock-actions { display: none; }
   text-align: left;
   color: inherit;
   cursor: pointer;
+  transition: transform .18s var(--ease-out);
 }
 .sig-signed .sig-name {
   order: -1;
@@ -1979,7 +2067,7 @@ html:not(.js) .clock-actions { display: none; }
 .supporter .logo-slot { min-height: 40px; display: flex; align-items: flex-end; }
 .supporter .logo-slot > img { max-height: 40px; }
 .supporter .logo-word { font: 400 24px/1.2 var(--serif); font-optical-sizing: auto; letter-spacing: -0.005em; color: var(--ink); }
-.supporter-role { font: 400 14px/1.45 var(--sans); color: var(--ink-2); }
+.supporter-role { font: var(--t-small); color: var(--ink-2); }
 @media (max-width: 1140px) {
   .support-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6) var(--s5); max-width: 520px; }
 }
@@ -2120,6 +2208,7 @@ html.motion .team-fig.is-intro .front { animation: pg-seat .36s var(--ease-out) 
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: transform .18s var(--ease-out);
 }
 .role.is-signed .role-who {
   color: var(--ink-2);
@@ -2163,6 +2252,7 @@ html.motion .team-fig.is-intro .front { animation: pg-seat .36s var(--ease-out) 
   font-optical-sizing: auto;
   text-wrap: balance;
 }
+@media (max-width: 339.98px) { .fd-name { font-size: 30px; } }
 .fd-meta {
   display: grid;
   gap: 2px;
@@ -2236,9 +2326,11 @@ html.motion .team-fig.is-intro .front { animation: pg-seat .36s var(--ease-out) 
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: transform .18s var(--ease-out);
 }
 .sign-btn .sign-portrait { width: 160px; margin-bottom: var(--s4); transition: transform .5s var(--ease-out); }
 .sign-btn:hover .sign-portrait { transform: translateY(-2px); }
+.sign-btn:active .sign-portrait { transform: none; }
 .sign-name {
   min-width: 0;
   font: 400 22px/1.2 var(--serif);
@@ -2277,7 +2369,8 @@ html.motion .team-fig.is-intro .front { animation: pg-seat .36s var(--ease-out) 
   left: 0;
   top: 0;
   white-space: nowrap;
-  font: 400 14px/1.3 var(--sans);
+  font: var(--t-small);
+  line-height: 1.3;
   color: var(--ink-2);
   transition: color .2s var(--ease-out);
   pointer-events: none;
@@ -2328,7 +2421,7 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   font-optical-sizing: auto;
   color: var(--ink);
 }
-.pw-detail { display: block; margin-top: 4px; font: 400 14px/1.4 var(--sans); color: var(--ink-2); }
+.pw-detail { display: block; margin-top: 4px; font: var(--t-small); line-height: 1.4; color: var(--ink-2); }
 .partner-role {
   display: flex;
   align-items: center;
@@ -2336,7 +2429,9 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   margin-top: var(--s5);
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
-  font: 500 14px/1.4 var(--sans);
+  font: var(--t-small);
+  font-weight: 500;
+  line-height: 1.4;
   color: var(--ink-2);
   transition: color .2s var(--ease-out);
 }
@@ -2344,7 +2439,7 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   flex: none;
   width: 10px;
   height: 6px;
-  border-radius: 3px;
+  border-radius: 999px;
   background: var(--rub-1);
   transition: background-color .2s var(--ease-out);
 }
@@ -2358,7 +2453,7 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   font: var(--t-paper);
   font-optical-sizing: auto;
   font-variant-numeric: oldstyle-nums;
-  text-wrap: pretty;
+  text-wrap: balance; /* two to four lines each; pretty left "Kazakhstan." alone at 320 */
 }
 .partner-link { margin-top: var(--s3); font: 400 15px/1.4 var(--sans); }
 
@@ -2385,7 +2480,7 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   font: 400 19px/1.5 var(--serif);
   font-optical-sizing: auto;
   font-variant-numeric: oldstyle-nums;
-  text-wrap: pretty;
+  text-wrap: balance;
 }
 .help-when { padding-top: 11px; }
 /* The day to scale, as in the Articles: welcome 30 (last 10 optional), preparation 60, presenting 24, writing 10 (last 5 optional), awards 15. */
@@ -2394,7 +2489,7 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   display: flex;
   flex: var(--m) 1 0;
   overflow: hidden;
-  border-radius: 1.5px;
+  border-radius: 2px;
   background: var(--line-strong);
 }
 .mini > i.on { background: var(--fill-azure); }
@@ -2414,7 +2509,7 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   border-top: 1px solid var(--line);
   font: var(--t-clause);
   font-optical-sizing: auto;
-  text-wrap: pretty;
+  text-wrap: balance;
 }
 .gets > li:first-child { padding-top: 0; border-top: 0; }
 .gets > li:last-child { padding-bottom: 0; }
@@ -2425,9 +2520,9 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
   font-optical-sizing: auto;
   text-wrap: balance;
 }
-.pt-contact { margin-top: var(--s5); }
 .pt-close-act { margin-top: var(--s5); }
-.pt-contact .email { font: 400 clamp(19px, 1rem + 1.4vw, 26px)/1.25 var(--serif); }
+/* The longest button label on the site: with a larger default text size it may wrap rather than push a 320px page sideways. */
+.pt-close-act .btn { white-space: normal; text-wrap: balance; }
 .pt-support { padding-bottom: calc(var(--section-y) * .75); }
 
 @media (max-width: 1140px) {
@@ -2450,6 +2545,12 @@ html.motion .pt-fig.is-intro .pt-label { animation: pg-fade .4s var(--ease-out) 
 @media (max-width: 759.98px) {
   .partner-logo.logo-slot { min-height: 0; }
 }
+
+/* ---------- 404: the page for an address that is not on the site ---------- */
+
+/* The h1 on the document's body line, as the Team and Partners heroes, then the three pages, then the Next block. */
+.nf { padding-top: calc(var(--nav-h) + var(--safe-t) + clamp(40px, 6.4vw, 104px)); padding-bottom: 0; }
+.nf-links { display: grid; gap: var(--s3); margin-top: var(--s6); font: var(--t-clause); font-optical-sizing: auto; }
 
 /* ==========================================================================
    Reduced motion (last, so it wins)

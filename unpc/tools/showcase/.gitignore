@@ -1,0 +1,11 @@
+frames-*/
+final-*/
+stills-*/
+out/
+fontcache/
+*.log
+*.gif
+*.mp4
+*-contact.png
+motion-*.json
+verify-*.json

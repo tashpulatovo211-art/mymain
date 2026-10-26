@@ -510,6 +510,7 @@
     const stepper = $("[data-stepper]");
     const steps = $$(".step");
     const stepButtons = steps.map((s) => $(".step-btn", s));
+    stepButtons.forEach((b) => b.removeAttribute("tabindex")); // shipped out of the Tab order: without JS they do nothing
     const stepBodies = steps.map((s) => $(".step-body", s));
     // The nav's Register button goes quiet while the hero's own Register button is on screen (one solid button per view).
     const navReg = doc.querySelector("[data-nav-register]");
@@ -834,7 +835,9 @@
           // the stepper keeps to the nav's left line, so its active capsule lines up with the brand mark: the gutter, and from
           // 1600px (where the nav's contents keep to the content column, max 1240px) that column, as the sections below
           const navCol = window.matchMedia ? window.matchMedia("(min-width: 1600px)").matches : W >= 1585;
-          const inset = navCol ? Math.max(gutter, (W - 1240) / 2) : gutter;
+          // --max is 77.5rem: 1240px at the default text size, and wider when the reader has set a larger one
+          const col = 1240 * ((parseFloat(getComputedStyle(root).fontSize) || 16) / 16);
+          const inset = navCol ? Math.max(gutter, (W - col) / 2) : gutter;
           const x0 = Math.max(inset + (W - 2 * inset) * 0.42, inset + 440);
           box = { x: x0, y: nav + H * 0.05, w: W - inset - x0, h: H * 0.9 - nav };
           stepLeft = inset + 2 + 19; // the active capsule (left: -19px) starts 2px in, where the brand mark sits in its link
@@ -1939,10 +1942,13 @@
         seen.place = p;
       };
 
-      // The nav's Register button stays quiet while the hero's actions are in view.
+      // The nav's Register button stays quiet while the hero's "Register for Sunday" is in view below the bar.
       if (navReg && window.IntersectionObserver) {
-        const io0 = new IntersectionObserver((e) => navReg.classList.toggle("is-hero-quiet", e[e.length - 1].isIntersecting));
-        io0.observe($(".hero-actions"));
+        const bar = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"))) || 64;
+        const io0 = new IntersectionObserver((e) => navReg.classList.toggle("is-hero-quiet", e[e.length - 1].isIntersecting), {
+          rootMargin: -bar + "px 0px 0px 0px"
+        });
+        io0.observe($(".hero-actions .btn"));
         stops.push(() => {
           io0.disconnect();
           navReg.classList.remove("is-hero-quiet");
